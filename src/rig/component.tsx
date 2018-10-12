@@ -19,6 +19,7 @@ import { ExtensionMode, ExtensionViewType } from '../constants/extension-coordin
 import { ProjectView } from '../project-view';
 import { CreateProjectDialog } from '../create-project-dialog';
 import { ConfigurationServiceView } from '../configuration-service-view';
+import { DeveloperRigUserId } from '../constants/rig';
 
 enum LocalStorageKeys {
   RigLogin = 'rigLogin',
@@ -257,7 +258,7 @@ export class RigComponent extends React.Component<Props, State> {
             />}
             {this.state.showingExtensionsView && (
               <ExtensionViewDialog
-                channelId="265737932"
+                channelId={DeveloperRigUserId}
                 extensionViews={currentProject.manifest.views}
                 closeHandler={this.closeExtensionViewDialog}
                 saveHandler={this.createExtensionView}

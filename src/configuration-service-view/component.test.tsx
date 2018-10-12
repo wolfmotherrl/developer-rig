@@ -1,6 +1,7 @@
 import { setupShallowTest } from '../tests/enzyme-util/shallow';
 import { ConfigurationServiceView } from './component';
 import { createExtensionManifestForTest } from '../tests/constants/extension';
+import { DeveloperRigUserId } from '../constants/rig';
 
 const globalAny = global as any;
 
@@ -37,7 +38,7 @@ describe('<ConfigurationServiceView />', () => {
       frontendCommand: 'test',
       backendCommand: 'test',
     },
-    userId: '265737932',
+    userId: DeveloperRigUserId,
     saveHandler: jest.fn(),
   }));
 
