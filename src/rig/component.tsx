@@ -11,7 +11,7 @@ import { NavItem } from '../constants/nav-items'
 import { OverlaySizes } from '../constants/overlay-sizes';
 import { IdentityOptions } from '../constants/identity-options';
 import { MobileSizes } from '../constants/mobile';
-import { Configurations, RigExtensionView, RigProject } from '../core/models/rig';
+import { ChannelSegments, Configurations, RigExtensionView, RigProject } from '../core/models/rig';
 import { ExtensionManifest } from '../core/models/manifest';
 import { UserSession } from '../core/models/user-session';
 import { SignInDialog } from '../sign-in-dialog';
@@ -19,7 +19,6 @@ import { ExtensionMode, ExtensionViewType } from '../constants/extension-coordin
 import { ProjectView } from '../project-view';
 import { CreateProjectDialog } from '../create-project-dialog';
 import { ConfigurationServiceView } from '../configuration-service-view';
-import { zip } from '../util/zip';
 
 enum LocalStorageKeys {
   RigLogin = 'rigLogin',
@@ -338,15 +337,15 @@ export class RigComponent extends React.Component<Props, State> {
       try {
         const channelIds = extensionViews ?
           Array.from(new Set<string>(extensionViews.map((view) => view.channelId))) : [];
-        const channelValues = await Promise.all(channelIds.map((channelId) => (
-          fetchChannelConfigurationSegments(clientId, userId, channelId, secret)
+        const channelSegmentMaps = await Promise.all(channelIds.map((channelId) => (
+          fetchChannelConfigurationSegments(clientId, userId, channelId, secret).then((segmentMap) => ({ channelId, segmentMap }))
         )));
         const configurations = {
           globalSegment: await fetchGlobalConfigurationSegment(clientId, userId, secret),
-          channelSegments: zip(channelIds, channelValues).reduce((segments, pair) => {
-            segments[pair[0]] = pair[1];
+          channelSegments: channelSegmentMaps.reduce((segments, channelSegmentMap) => {
+            segments[channelSegmentMap.channelId] = channelSegmentMap.segmentMap;
             return segments;
-          }, {}),
+          }, {} as ChannelSegments),
         };
         this.setState({ configurations });
       } catch (ex) {
