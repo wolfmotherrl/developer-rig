@@ -224,7 +224,7 @@ export class RigComponent extends React.Component<Props, State> {
           <>
             {this.state.selectedView === NavItem.ProductManagement && <ProductManagementViewContainer clientId={currentProject.manifest.id} />}
             {this.state.selectedView === NavItem.ProjectOverview && currentProject && <ProjectView
-              key={this.currentProjectIndex}
+              key={`ProjectView${this.currentProjectIndex}`}
               rigProject={currentProject}
               userId={this.state.userId}
               onChange={this.updateProject}
