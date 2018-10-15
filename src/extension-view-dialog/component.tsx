@@ -23,7 +23,6 @@ export interface ExtensionViewDialogProps {
 export interface ExtensionViewDialogState {
   extensionViewType: ExtensionAnchor | ExtensionMode | ExtensionPlatform | ExtensionViewType;
   channelId: string;
-  lastChannelId: string;
   frameSize: string;
   isChatEnabled: boolean;
   isPopout: boolean;
@@ -36,15 +35,13 @@ export interface ExtensionViewDialogState {
   linkedUserId: string;
   orientation: string;
   opaqueId?: string;
-  wantsDeveloperRigForChannel: boolean;
-  wantsDeveloperRigForLinkedUser: boolean;
+  error?: string;
   [key: string]: number | string | boolean;
 }
 
 export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProps, ExtensionViewDialogState> {
   public state: ExtensionViewDialogState = {
     channelId: DeveloperRigUserId,
-    lastChannelId: '',
     extensionViewType: getSupportedAnchors(this.props.extensionViews)[0],
     isChatEnabled: false,
     isPopout: false,
@@ -57,20 +54,11 @@ export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProp
     identityOption: DefaultIdentityOption,
     linkedUserId: DeveloperRigUserId,
     orientation: DefaultMobileOrientation,
-    wantsDeveloperRigForChannel: true,
-    wantsDeveloperRigForLinkedUser: true,
   }
 
   public onChange = (input: React.FormEvent<HTMLInputElement>) => {
     const { checked, name, type, value } = input.currentTarget;
     this.setState({ [name]: type === 'checkbox' ? checked : value });
-    if (name === 'wantsDeveloperRigForChannel') {
-      if (checked) {
-        this.setState({ lastChannelId: this.state.channelId, channelId: DeveloperRigUserId });
-      } else {
-        this.setState({ channelId: this.state.lastChannelId });
-      }
-    }
   }
 
   private renderExtensionTypeComponents() {
@@ -163,8 +151,13 @@ export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProp
     this.props.closeHandler();
   }
 
-  private save = () => {
-    this.props.saveHandler(this.state);
+  private save = async () => {
+    try {
+      await this.props.saveHandler(this.state);
+    } catch (ex) {
+      const idOrName = ~ex.message.indexOf('Cannot fetch user for login') ? 'name' : 'id';
+      this.setState({ error: `Invalid user ${idOrName}` });
+    }
   }
 
   private toggleIsChatEnabled = () => {
@@ -365,6 +358,7 @@ export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProp
           <div className="dialog_bottom-bar">
             <div className="bottom-bar__save" onClick={this.save}> Save </div>
             <div className="bottom-bar__cancel" onClick={this.close}> Cancel </div>
+            <span>{this.state.error}</span>
           </div>
         </div>
       </div>

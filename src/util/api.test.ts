@@ -152,7 +152,13 @@ describe('api', () => {
       }
     });
 
-    it('returns null if user not found', async function() {
+    it('returns null if user id not found', async function() {
+      globalAny.fetch = jest.fn().mockImplementation(() => Promise.resolve({ json: () => [] }));
+      const data = await fetchUser(token, '1');
+      expect(data).toBe(null);
+    });
+
+    it('returns null if user name not found', async function() {
       globalAny.fetch = jest.fn().mockImplementation(() => Promise.resolve({ json: () => [] }));
       const data = await fetchUser(token, '-');
       expect(data).toBe(null);

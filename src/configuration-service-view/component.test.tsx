@@ -6,15 +6,22 @@ import { DeveloperRigUserId } from '../constants/rig';
 const globalAny = global as any;
 
 function mockApiFunctions() {
-  const original = require.requireActual('../util/api');
   return {
-    ...original,
+    ...require.requireActual('../util/api'),
     fetchChannelConfigurationSegments: jest.fn().mockImplementation(() => Promise.resolve({})),
-    fetchUser: jest.fn().mockImplementation((_, login) => Promise.resolve(login === 'developerrig' ? { id: '999999999' } : null)),
-  }
+  };
 }
 jest.mock('../util/api', () => mockApiFunctions());
 const api = require.requireMock('../util/api');
+function mockIdFunctions() {
+  return {
+    ...require.requireActual('../util/id'),
+    fetchIdForUser: jest.fn().mockImplementation((_, id) => id === 'developerrig' ?
+      Promise.resolve(DeveloperRigUserId) : Promise.reject(new Error(`Cannot fetch user "${id}"`))),
+  };
+}
+jest.mock('../util/id', () => mockIdFunctions());
+const { fetchIdForUser } = require.requireMock('../util/id');
 
 localStorage.setItem('rigLogin', JSON.stringify({ authToken: 1 }));
 
@@ -61,7 +68,7 @@ describe('<ConfigurationServiceView />', () => {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
           try {
-            expect(api.fetchUser).toHaveBeenCalled();
+            expect(fetchIdForUser).toHaveBeenCalled();
             expect(api.fetchChannelConfigurationSegments).toHaveBeenCalled();
             wrapper.update();
             const instance = wrapper.instance() as ConfigurationServiceView;
@@ -84,8 +91,7 @@ describe('<ConfigurationServiceView />', () => {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
           try {
-            expect(api.fetchUser).toHaveBeenCalled();
-            expect(api.fetchChannelConfigurationSegments).toHaveBeenCalled();
+            expect(fetchIdForUser).toHaveBeenCalled();
             wrapper.update();
             const instance = wrapper.instance() as ConfigurationServiceView;
             expect(instance.state.fetchStatus).toEqual(`Cannot fetch user "${value}"`);

@@ -1,6 +1,6 @@
 import { createSignedToken, TokenSpec } from './token';
 import { ExtensionManifest } from '../core/models/manifest';
-import { generateId } from './generate-id';
+import { generateId } from './id';
 import { RigRole } from '../constants/rig';
 import { ViewerTypes } from '../constants/viewer-types';
 import { fetchExtensionManifest } from './api';

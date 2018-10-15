@@ -19,7 +19,7 @@ import { ExtensionMode, ExtensionViewType } from '../constants/extension-coordin
 import { ProjectView } from '../project-view';
 import { CreateProjectDialog } from '../create-project-dialog';
 import { ConfigurationServiceView } from '../configuration-service-view';
-import { DeveloperRigUserId } from '../constants/rig';
+import { fetchIdForUser } from '../util/id';
 
 enum LocalStorageKeys {
   RigLogin = 'rigLogin',
@@ -115,24 +115,28 @@ export class RigComponent extends React.Component<Props, State> {
   }
 
   public createExtensionView = async (extensionViewDialogState: ExtensionViewDialogState) => {
+    let { channelId } = extensionViewDialogState;
+    channelId = await fetchIdForUser(this.props.session.authToken, channelId);
     const extensionViews = this.state.currentProject.extensionViews || [];
     const mode = extensionViewDialogState.extensionViewType === ExtensionMode.Config ? ExtensionMode.Config :
       extensionViewDialogState.extensionViewType === ExtensionMode.Dashboard ? ExtensionMode.Dashboard : ExtensionMode.Viewer;
     const linked = extensionViewDialogState.identityOption === IdentityOptions.Linked ||
       extensionViewDialogState.extensionViewType === ExtensionMode.Config ||
       extensionViewDialogState.extensionViewType === ExtensionMode.Dashboard;
+    const linkedUserId = linked && extensionViewDialogState.linkedUserId ?
+      await fetchIdForUser(this.props.session.authToken, extensionViewDialogState.linkedUserId) : '';
     const nextExtensionViewId = 1 + extensionViews.reduce((reduced: number, view: RigExtensionView) => {
       return Math.max(reduced, parseInt(view.id, 10));
     }, 0);
     extensionViews.push({
       id: nextExtensionViewId.toString(),
-      channelId: extensionViewDialogState.channelId,
+      channelId,
       type: extensionViewDialogState.extensionViewType,
       features: {
         isChatEnabled: extensionViewDialogState.isChatEnabled,
       },
       linked,
-      linkedUserId: extensionViewDialogState.linkedUserId,
+      linkedUserId,
       opaqueId: extensionViewDialogState.opaqueId,
       mode,
       isPopout: extensionViewDialogState.isPopout,

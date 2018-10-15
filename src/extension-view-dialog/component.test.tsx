@@ -4,7 +4,7 @@ import { DefaultExtensionType, ExtensionAnchors } from '../constants/extension-t
 import { DefaultOverlaySize } from '../constants/overlay-sizes'
 import { ViewerTypes, DefaultViewerType } from '../constants/viewer-types'
 import { RadioOption } from './radio-option';
-import { ExtensionViewType, ExtensionMode, ExtensionAnchor } from '../constants/extension-coordinator';
+import { ExtensionViewType, ExtensionMode, ExtensionAnchor, ExtensionPlatform } from '../constants/extension-coordinator';
 import { DivOption } from './div-option';
 
 describe('<ExtensionViewDialog />', () => {
@@ -14,6 +14,9 @@ describe('<ExtensionViewDialog />', () => {
       panel: {
         height: 300,
         canLinkExternalContent: false,
+        viewerUrl: 'test.html',
+      },
+      mobile: {
         viewerUrl: 'test.html',
       },
       videoOverlay: {
@@ -83,11 +86,12 @@ describe('<ExtensionViewDialog />', () => {
     const { wrapper } = setupShallow();
 
     it('renders correctly', () => {
-      expect(wrapper.find(DivOption).length).toEqual(4);
+      expect(wrapper.find(DivOption).length).toEqual(5);
       expect(wrapper.find(DivOption).someWhere((node) => node.prop('name') === ExtensionAnchors[ExtensionMode.Config]));
       expect(wrapper.find(DivOption).someWhere((node) => node.prop('name') === ExtensionAnchors[ExtensionMode.Dashboard]));
       expect(wrapper.find(DivOption).someWhere((node) => node.prop('name') === ExtensionAnchors[ExtensionAnchor.Panel]));
       expect(wrapper.find(DivOption).someWhere((node) => node.prop('name') === ExtensionAnchors[ExtensionAnchor.Overlay]));
+      expect(wrapper.find(DivOption).someWhere((node) => node.prop('name') === ExtensionAnchors[ExtensionPlatform.Mobile]));
     });
 
     it('has the correct default state', () => {
@@ -98,7 +102,7 @@ describe('<ExtensionViewDialog />', () => {
 
     it('has the correct selected UI elements', () => {
       expect(wrapper.find('DivOption[value="video_overlay"][checked=true]')).toHaveLength(1);
-      expect(wrapper.find('DivOption[checked=false]')).toHaveLength(3);
+      expect(wrapper.find('DivOption[checked=false]')).toHaveLength(4);
 
       expect(wrapper.find('RadioOption[value="640x480"][checked=true]')).toHaveLength(1);
       expect(wrapper.find('RadioOption[name="frameSize"][checked=false]')).toHaveLength(4);
@@ -125,6 +129,7 @@ describe('<ExtensionViewDialog />', () => {
       expect(wrapper.find(DivOption).someWhere((node) => node.prop('name') === ExtensionAnchors[ExtensionAnchor.Panel]));
       expect(wrapper.find(DivOption).someWhere((node) => node.prop('name') === ExtensionAnchors[ExtensionMode.Config]));
       expect(wrapper.find(DivOption).someWhere((node) => node.prop('name') === ExtensionAnchors[ExtensionMode.Dashboard]));
+      expect(wrapper.find(DivOption).someWhere((node) => node.prop('name') === ExtensionAnchors[ExtensionPlatform.Mobile]));
     });
 
     it('has the correct default state', () => {

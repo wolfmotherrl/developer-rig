@@ -139,8 +139,8 @@ interface UsersResponse {
   }[];
 }
 
-export async function fetchUser(token: string, login?: string) {
-  const path = `/helix/users${login ? `?login=${login}` : ''}`;
+export async function fetchUser(token: string, idOrLogin?: string, isId?: boolean) {
+  const path = `/helix/users${idOrLogin ? `?${isId ? 'id' : 'login'}=${idOrLogin}` : ''}`;
   const response = await onlineApi.get<UsersResponse>(path, {
     Authorization: `Bearer ${token}`,
   });
@@ -148,7 +148,7 @@ export async function fetchUser(token: string, login?: string) {
   if (data && data.length) {
     return data[0];
   }
-  if (login) {
+  if (idOrLogin) {
     // Did not find that user.
     return null;
   }

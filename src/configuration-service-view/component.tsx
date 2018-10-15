@@ -2,9 +2,10 @@ import * as React from 'react';
 import './component.sass';
 import { Configurations, RigProject } from '../core/models/rig';
 import classNames = require('classnames');
-import { fetchChannelConfigurationSegments, fetchUser } from '../util/api';
+import { fetchChannelConfigurationSegments } from '../util/api';
 import { ChannelIdOrName } from '../channel-id-or-name';
 import { DeveloperRigUserId } from '../constants/rig';
+import { fetchIdForUser } from '../util/id';
 
 export interface Props {
   configurations: Configurations;
@@ -63,15 +64,7 @@ export class ConfigurationServiceView extends React.Component<Props, State>{
     if (channelId) {
       this.setState({ fetchStatus: 'fetching...' });
       try {
-        if (isNaN(Number(channelId))) {
-          // Assume it's a channel (user) name.  Get the channel ID, if any.
-          const user = await fetchUser(this.props.authToken, channelId);
-          if (user) {
-            channelId = user.id;
-          } else {
-            throw new Error(`Cannot fetch user "${channelId}"`);
-          }
-        }
+        channelId = await fetchIdForUser(this.props.authToken, channelId);
         let segmentMap = this.props.configurations.channelSegments[channelId];
         if (!segmentMap) {
           const { rigProject: { manifest: { id: clientId }, secret }, userId } = this.props;
@@ -100,17 +93,15 @@ export class ConfigurationServiceView extends React.Component<Props, State>{
   private save = async () => {
     if (this.canSave()) {
       const { configuration, configurationType, version } = this.state;
-      let channelId = configurationType === ConfigurationType.Global ? '' : this.state.channelId;
-      if (isNaN(Number(channelId))) {
-        // Assume it's a channel (user) name.  Get the channel ID, if any.
-        const user = await fetchUser(this.props.authToken, channelId);
-        if (user) {
-          channelId = user.id;
-        } else {
-          this.setState({ fetchStatus: `Cannot fetch user "${channelId}"` });
+      let { channelId } = this.state;
+      try {
+        if (configurationType !== ConfigurationType.Global) {
+          channelId = await fetchIdForUser(this.props.authToken, channelId);
         }
+        this.props.saveHandler(configurationType, channelId, configuration.trim(), version.trim());
+      } catch (ex) {
+        this.setState({ fetchStatus: ex.message });
       }
-      this.props.saveHandler(configurationType, channelId, configuration.trim(), version.trim());
     }
   }
 
