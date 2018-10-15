@@ -3,6 +3,8 @@ import './component.sass';
 import { Configurations, RigProject } from '../core/models/rig';
 import classNames = require('classnames');
 import { fetchChannelConfigurationSegments, fetchUser } from '../util/api';
+import { ChannelIdOrName } from '../channel-id-or-name';
+import { DeveloperRigUserId } from '../constants/rig';
 
 export interface Props {
   configurations: Configurations;
@@ -33,7 +35,7 @@ export class ConfigurationServiceView extends React.Component<Props, State>{
   public state: State = {
     version: this.props.configurations.globalSegment && this.props.configurations.globalSegment.version || '',
     configurationType: ConfigurationType.Global,
-    channelId: '',
+    channelId: DeveloperRigUserId,
     configuration: this.props.configurations.globalSegment && this.props.configurations.globalSegment.content || '',
     fetchStatus: '',
     lastConfiguration: '',
@@ -150,10 +152,8 @@ export class ConfigurationServiceView extends React.Component<Props, State>{
             </select>
           </label>
           {this.state.configurationType !== ConfigurationType.Global && <>
-            <label className="configuration-service-view-property">
-              <div className="configuration-service-view-property__name">Channel ID or Name</div>
-              <input className={channelClassName} type="text" name="channelId" value={this.state.channelId} onChange={this.onChange} />
-            </label>
+            <ChannelIdOrName name="channelId" value={this.state.channelId} onChange={this.onChange}
+              labelClassName="configuration-service-view-property" textClassName="configuration-service-view-property__name" />
             <button className="configuration-service-view__button" onClick={this.fetchChannelConfiguration}>Fetch</button>
             <span>{this.state.fetchStatus}</span>
           </>}
@@ -181,8 +181,8 @@ export class ConfigurationServiceView extends React.Component<Props, State>{
           <p className="configuration-service-view__text">Having Trouble?  Make sure you’re set to
             use Hosted Configuration
             on <a href={extensionUrl} target="dev-site">your Extension Capabilities page</a>.
-            Also you might need to refresh your Extension Manifest in the Rig (you can do so on
-            the Project Tab).  Happy Coding!</p>
+            Also you might need to refresh your Extension Manifest in the Rig.  You can do so on
+            the Project Tab.  Happy Coding!</p>
           <button className="configuration-service-view__button configuration-service-view__button--first" onClick={this.viewTutorial}>View Tutorial</button>
           <button className="configuration-service-view__button" onClick={this.viewDocumentation}>Go to Documentation</button>
         </div>

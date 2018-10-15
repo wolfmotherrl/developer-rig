@@ -258,7 +258,6 @@ export class RigComponent extends React.Component<Props, State> {
             />}
             {this.state.showingExtensionsView && (
               <ExtensionViewDialog
-                channelId={DeveloperRigUserId}
                 extensionViews={currentProject.manifest.views}
                 closeHandler={this.closeExtensionViewDialog}
                 saveHandler={this.createExtensionView}

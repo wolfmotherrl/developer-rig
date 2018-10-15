@@ -52,7 +52,7 @@ describe('<ConfigurationServiceView />', () => {
       const { wrapper } = setupShallow();
       [
         ['configurationType', 'select', 'developer'],
-        ['channelId', 'input[name="channelId"]', 'developerrig'],
+        ['channelId', 'ChannelIdOrName', 'developerrig'],
       ].forEach(([name, selector, value]) => {
         wrapper.find(selector).simulate('change', { currentTarget: { name, value } });
         wrapper.update();
@@ -78,7 +78,7 @@ describe('<ConfigurationServiceView />', () => {
       const { wrapper } = setupShallow();
       wrapper.find('select').simulate('change', { currentTarget: { name: 'configurationType', value: 'developer' } });
       const value = 'unknown';
-      wrapper.find('input[name="channelId"]').simulate('change', { currentTarget: { name: 'channelId', value } });
+      wrapper.find('ChannelIdOrName').simulate('change', { currentTarget: { name: 'channelId', value } });
       wrapper.update();
       wrapper.find('.configuration-service-view__button').first().simulate('click');
       return new Promise((resolve, reject) => {
@@ -126,7 +126,7 @@ describe('<ConfigurationServiceView />', () => {
       const value = 'broadcaster';
       [
         ['configurationType', 'select'],
-        ['channelId', 'input[name="channelId"]'],
+        ['channelId', 'ChannelIdOrName'],
         ['configuration', 'textarea'],
         ['version', 'input[name="version"]'],
       ].forEach(([name, selector]) => {
@@ -155,7 +155,7 @@ describe('<ConfigurationServiceView />', () => {
       const value = 'broadcaster';
       [
         ['configurationType', 'select'],
-        ['channelId', 'input[name="channelId"]'],
+        ['channelId', 'ChannelIdOrName'],
         ['configuration', 'textarea'],
         ['version', 'input[name="version"]'],
       ].forEach(([name, selector]) => {

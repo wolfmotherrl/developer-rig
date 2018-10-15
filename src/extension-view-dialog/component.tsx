@@ -11,9 +11,10 @@ import * as closeButton from '../img/close_icon.png';
 import { MobileOrientation, DefaultMobileOrientation, MobileSizes } from '../constants/mobile';
 import { getSupportedAnchors, getSupportedPlatforms } from '../core/models/manifest';
 import { ExtensionAnchor, ExtensionMode, ExtensionPlatform, ExtensionViewType } from '../constants/extension-coordinator';
+import { DeveloperRigUserId } from '../constants/rig';
+import { ChannelIdOrName } from '../channel-id-or-name';
 
 export interface ExtensionViewDialogProps {
-  channelId: string;
   extensionViews: ExtensionCoordinator.ExtensionViews;
   closeHandler: Function;
   saveHandler: Function;
@@ -22,6 +23,7 @@ export interface ExtensionViewDialogProps {
 export interface ExtensionViewDialogState {
   extensionViewType: ExtensionAnchor | ExtensionMode | ExtensionPlatform | ExtensionViewType;
   channelId: string;
+  lastChannelId: string;
   frameSize: string;
   isChatEnabled: boolean;
   isPopout: boolean;
@@ -34,12 +36,15 @@ export interface ExtensionViewDialogState {
   linkedUserId: string;
   orientation: string;
   opaqueId?: string;
+  wantsDeveloperRigForChannel: boolean;
+  wantsDeveloperRigForLinkedUser: boolean;
   [key: string]: number | string | boolean;
 }
 
 export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProps, ExtensionViewDialogState> {
   public state: ExtensionViewDialogState = {
-    channelId: this.props.channelId,
+    channelId: DeveloperRigUserId,
+    lastChannelId: '',
     extensionViewType: getSupportedAnchors(this.props.extensionViews)[0],
     isChatEnabled: false,
     isPopout: false,
@@ -50,13 +55,22 @@ export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProp
     width: DefaultCustomDimensions.width,
     height: DefaultCustomDimensions.height,
     identityOption: DefaultIdentityOption,
-    linkedUserId: '888888888',
+    linkedUserId: DeveloperRigUserId,
     orientation: DefaultMobileOrientation,
+    wantsDeveloperRigForChannel: true,
+    wantsDeveloperRigForLinkedUser: true,
   }
 
   public onChange = (input: React.FormEvent<HTMLInputElement>) => {
-    const { name, value } = input.currentTarget;
-    this.setState({ [name]: value });
+    const { checked, name, type, value } = input.currentTarget;
+    this.setState({ [name]: type === 'checkbox' ? checked : value });
+    if (name === 'wantsDeveloperRigForChannel') {
+      if (checked) {
+        this.setState({ lastChannelId: this.state.channelId, channelId: DeveloperRigUserId });
+      } else {
+        this.setState({ channelId: this.state.lastChannelId });
+      }
+    }
   }
 
   private renderExtensionTypeComponents() {
@@ -131,7 +145,7 @@ export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProp
       return option === IdentityOptions.Linked ? (
         <div key={option}>
           <RadioOption name="identityOption" value={option} onChange={this.onChange} checked={isChecked} />
-          {isChecked && <input type="text" name="linkedUserId" value={this.state.linkedUserId} onChange={this.onChange} />}
+          {isChecked && <ChannelIdOrName labelClassName="vertical-option-label" isUser={true} name="linkedUserId" value={this.state.linkedUserId} onChange={this.onChange} />}
         </div>
       ) : (
           <RadioOption key={option} name="identityOption" value={option} onChange={this.onChange} checked={isChecked} />
@@ -342,8 +356,7 @@ export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProp
                   </div>
                 )}
                 <div className="option-div">
-                  <label className="option-label" htmlFor="channelId">Channel ID:</label>
-                  <input type="text" name="channelId" value={this.state.channelId} onChange={this.onChange} />
+                  <ChannelIdOrName labelClassName="option-label" textClassName="option-text" name="channelId" value={this.state.channelId} onChange={this.onChange} />
                 </div>
               </div>
             </div>
