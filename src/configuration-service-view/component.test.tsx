@@ -1,7 +1,7 @@
 import { setupShallowTest } from '../tests/enzyme-util/shallow';
 import { ConfigurationServiceView } from './component';
 import { createExtensionManifestForTest } from '../tests/constants/extension';
-import { DeveloperRigUserId } from '../constants/rig';
+import { DeveloperRigUserId, LocalStorageKeys } from '../constants/rig';
 
 const globalAny = global as any;
 
@@ -23,7 +23,7 @@ function mockIdFunctions() {
 jest.mock('../util/id', () => mockIdFunctions());
 const { fetchIdForUser } = require.requireMock('../util/id');
 
-localStorage.setItem('rigLogin', JSON.stringify({ authToken: 1 }));
+localStorage.setItem(LocalStorageKeys.RigLogin, JSON.stringify({ authToken: 1 }));
 
 describe('<ConfigurationServiceView />', () => {
   const setupShallow = setupShallowTest(ConfigurationServiceView, () => ({

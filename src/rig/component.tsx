@@ -20,10 +20,7 @@ import { ProjectView } from '../project-view';
 import { CreateProjectDialog } from '../create-project-dialog';
 import { ConfigurationServiceView } from '../configuration-service-view';
 import { fetchIdForUser } from '../util/id';
-
-enum LocalStorageKeys {
-  RigLogin = 'rigLogin',
-}
+import { LocalStorageKeys } from '../constants/rig';
 
 export interface ReduxStateProps {
   session: UserSession;
@@ -173,9 +170,9 @@ export class RigComponent extends React.Component<Props, State> {
     this.state.currentProject && await stopHosting();
     this.setState((previousState) => {
       const previousProjects = previousState.currentProject ? previousState.projects : [];
-      localStorage.setItem('currentProjectIndex', previousProjects.length.toString());
+      localStorage.setItem(LocalStorageKeys.CurrentProjectIndex, previousProjects.length.toString());
       const projects = [...previousProjects, project];
-      localStorage.setItem('projects', JSON.stringify(projects));
+      localStorage.setItem(LocalStorageKeys.Projects, JSON.stringify(projects));
       return { currentProject: project, projects, selectedView: NavItem.ProjectOverview, showingCreateProjectDialog: false };
     });
   }
@@ -184,7 +181,7 @@ export class RigComponent extends React.Component<Props, State> {
     this.setState((previousState) => {
       const currentProject = Object.assign(previousState.currentProject, project);
       const projects = previousState.projects;
-      localStorage.setItem('projects', JSON.stringify(projects));
+      localStorage.setItem(LocalStorageKeys.Projects, JSON.stringify(projects));
       return { currentProject, projects };
     });
   }
@@ -199,7 +196,7 @@ export class RigComponent extends React.Component<Props, State> {
       await stopHosting();
       this.setState({ currentProject: selectedProject, selectedView: NavItem.ProjectOverview });
       this.refreshViews();
-      localStorage.setItem('currentProjectIndex', this.currentProjectIndex.toString());
+      localStorage.setItem(LocalStorageKeys.CurrentProjectIndex, this.currentProjectIndex.toString());
     }
   }
 
@@ -295,18 +292,18 @@ export class RigComponent extends React.Component<Props, State> {
   }
 
   private loadProjects = async () => {
-    const projectsValue = localStorage.getItem('projects');
+    const projectsValue = localStorage.getItem(LocalStorageKeys.Projects);
     const { userId } = this.state;
     if (projectsValue) {
       const projects = JSON.parse(projectsValue) as RigProject[];
-      const currentProject = projects[Number(localStorage.getItem('currentProjectIndex') || 0)];
+      const currentProject = projects[Number(localStorage.getItem(LocalStorageKeys.CurrentProjectIndex) || 0)];
       const selectedView = currentProject.backendCommand || currentProject.frontendCommand || currentProject.frontendFolderName ?
         NavItem.ProjectOverview : NavItem.ExtensionViews;
       this.setState({ currentProject, projects, selectedView });
       const { manifest, extensionViews, secret } = currentProject;
       await this.updateConfiguration(manifest, extensionViews, this.state.userId, secret);
     } else if (process.env.EXT_CLIENT_ID && process.env.EXT_SECRET && process.env.EXT_VERSION) {
-      const serializedExtensionViews = localStorage.getItem('extensionViews');
+      const serializedExtensionViews = localStorage.getItem(LocalStorageKeys.ExtensionViews);
       const currentProject: RigProject = {
         extensionViews: serializedExtensionViews ? JSON.parse(serializedExtensionViews) : [],
         isLocal: process.env.EXT_SECRET.startsWith('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk'),
@@ -319,14 +316,14 @@ export class RigComponent extends React.Component<Props, State> {
       };
       const projects = [currentProject];
       this.setState({ currentProject, projects });
-      localStorage.setItem('projects', JSON.stringify(projects));
-      localStorage.setItem('currentProjectIndex', '0');
+      localStorage.setItem(LocalStorageKeys.Projects, JSON.stringify(projects));
+      localStorage.setItem(LocalStorageKeys.CurrentProjectIndex, '0');
       const { isLocal, secret, manifest: { id: clientId, version } } = currentProject;
       try {
         const manifest = await fetchUserExtensionManifest(isLocal, userId, secret, clientId, version);
         this.setState((previousState) => {
           Object.assign(previousState.currentProject, { manifest });
-          localStorage.setItem('projects', JSON.stringify([previousState.currentProject]));
+          localStorage.setItem(LocalStorageKeys.Projects, JSON.stringify([previousState.currentProject]));
           return previousState;
         });
       } catch (ex) {

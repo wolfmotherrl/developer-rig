@@ -2,10 +2,11 @@ import { setupShallowTest } from '../tests/enzyme-util/shallow';
 import { CreateProjectDialog } from './component';
 import { ExtensionViewType } from '../constants/extension-coordinator';
 import { generateManifest } from '../util/generate-manifest';
+import { LocalStorageKeys } from '../constants/rig';
 
 Math.random = () => .25;
 const login = 'test';
-localStorage.setItem('rigLogin', JSON.stringify({ login }));
+localStorage.setItem(LocalStorageKeys.RigLogin, JSON.stringify({ login }));
 
 const mockExamples = [{
   title: 'title',
