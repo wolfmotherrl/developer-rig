@@ -7,7 +7,7 @@ import { ViewerTypes } from '../constants/viewer-types';
 import * as closeButton from '../img/close_icon.png';
 import { ExtensionComponentView } from '../extension-component-view';
 import { ExtensionMobileView } from '../extension-mobile-view/component';
-import { FrameSize } from '../core/models/rig';
+import { RigExtensionView } from '../core/models/rig';
 import { RunListTrigger } from '../runlist-trigger';
 import * as runlist from '../../runlist/runlist.json';
 import { RunList } from '../core/models/run-list';
@@ -29,22 +29,13 @@ export const PanelViewDimensions = Object.freeze({
 });
 
 interface Props {
-  id: string;
-  channelId: string;
+  view: RigExtensionView,
   configuration: ExtensionCoordinator.Configuration;
   extension: ExtensionCoordinator.ExtensionObject;
-  installationAbilities: ExtensionCoordinator.ExtensionInstallationAbilities;
-  type: string;
-  mode: string;
   role?: string;
-  linked?: boolean;
   isLocal: boolean;
-  isPopout: boolean;
-  orientation?: string;
   deleteViewHandler?: (id: string) => void;
   openEditViewHandler?: (id: string) => void;
-  position?: ExtensionCoordinator.Position;
-  frameSize?: FrameSize;
   mockApiEnabled: boolean;
 }
 
@@ -99,54 +90,56 @@ export class ExtensionView extends React.Component<Props, State> {
   }
 
   public renderView(extensionProps: ExtensionProps) {
-    let view = null;
-    switch (this.props.type) {
+    const { view } = this.props;
+    const position = { x: view.x, y: view.y };
+    let renderedView = null;
+    switch (view.type) {
       case ExtensionAnchor.Component:
-        view = (
+        renderedView = (
           <ExtensionComponentView
             bindIframeToParent={this.bindIframeToParent}
-            channelId={this.props.channelId}
+            channelId={view.channelId}
             className="view"
             configuration={this.props.configuration}
             extension={this.props.extension}
-            frameSize={this.props.frameSize}
-            id={`component-${this.props.id}`}
-            installationAbilities={this.props.installationAbilities}
-            position={this.props.position}
+            frameSize={view.frameSize}
+            id={`component-${view.id}`}
+            installationAbilities={view.features}
+            position={position}
             role={this.props.role}
           />
         );
         break;
       case ExtensionViewType.Mobile:
-        view = (
+        renderedView = (
           <ExtensionMobileView
             bindIframeToParent={this.bindIframeToParent}
-            channelId={this.props.channelId}
+            channelId={view.channelId}
             className="view"
             configuration={this.props.configuration}
             extension={this.props.extension}
-            frameSize={this.props.frameSize}
-            id={`mobile-${this.props.id}`}
-            installationAbilities={this.props.installationAbilities}
-            orientation={this.props.orientation}
-            position={this.props.position}
+            frameSize={view.frameSize}
+            id={`mobile-${view.id}`}
+            installationAbilities={view.features}
+            orientation={view.orientation}
+            position={position}
             role={this.props.role}
           />
         );
         break;
       case ExtensionAnchor.Overlay:
-        view = (
+        renderedView = (
           <div className="view nono_zone" style={extensionProps.viewStyles}>
             <ExtensionFrame
               bindIframeToParent={this.bindIframeToParent}
-              channelId={this.props.channelId}
+              channelId={view.channelId}
               className="view"
               configuration={this.props.configuration}
               extension={this.props.extension}
-              frameId={`frameid-${this.props.id}`}
-              installationAbilities={this.props.installationAbilities}
-              type={this.props.type}
-              mode={this.props.mode}
+              frameId={`frameid-${view.id}`}
+              installationAbilities={view.features}
+              type={view.type}
+              mode={view.mode}
               isPopout={false}
             />
           </div>
@@ -154,33 +147,33 @@ export class ExtensionView extends React.Component<Props, State> {
         break;
       default:
         // standard view for panels, live config, and broadcaster config
-        view = (
+        renderedView = (
           <div className="view" style={extensionProps.viewStyles}>
             <ExtensionFrame
               bindIframeToParent={this.bindIframeToParent}
-              channelId={this.props.channelId}
+              channelId={view.channelId}
               className="view"
               configuration={this.props.configuration}
               extension={this.props.extension}
-              frameId={`frameid-${this.props.id}`}
-              installationAbilities={this.props.installationAbilities}
-              mode={this.props.mode}
-              type={this.props.type}
-              isPopout={this.props.isPopout}
+              frameId={`frameid-${view.id}`}
+              installationAbilities={view.features}
+              mode={view.mode}
+              type={view.type}
+              isPopout={view.isPopout}
             />
           </div>
         );
         break;
     }
-    return view;
+    return renderedView;
   }
 
   private renderLinkedOrUnlinked() {
-    return this.props.linked ? IdentityOptions.Linked : IdentityOptions.Unlinked;
+    return this.props.view.linked ? IdentityOptions.Linked : IdentityOptions.Unlinked;
   }
 
   private isEditable() {
-    return this.props.type === ExtensionAnchor.Component || this.props.type === ExtensionPlatform.Mobile;
+    return this.props.view.type === ExtensionAnchor.Component || this.props.view.type === ExtensionPlatform.Mobile;
   }
 
   public render() {
@@ -193,7 +186,8 @@ export class ExtensionView extends React.Component<Props, State> {
     if (this.props.extension.views.panel && this.props.extension.views.panel.height) {
       panelHeight = this.props.extension.views.panel.height + '';
     }
-    switch (this.props.type) {
+    const { view } = this.props;
+    switch (view.type) {
       case ExtensionAnchor.Panel:
         extensionProps.viewStyles = {
           height: panelHeight + 'px',
@@ -202,8 +196,8 @@ export class ExtensionView extends React.Component<Props, State> {
         break;
       case ExtensionAnchor.Overlay:
         extensionProps.viewStyles = {
-          width: this.props.frameSize.width + 'px',
-          height: this.props.frameSize.height + 'px'
+          width: view.frameSize.width + 'px',
+          height: view.frameSize.height + 'px'
         };
         break;
       case ExtensionMode.Config:
@@ -240,20 +234,20 @@ export class ExtensionView extends React.Component<Props, State> {
               {this.props.role}
               {(this.props.role === ViewerTypes.LoggedIn) ?
                 ' ' + this.renderLinkedOrUnlinked() : null}
-              {this.props.isPopout ? ' Popout' : null}
-              {` (${(this.props.extension.views as any)[TypeViews[this.props.type]].viewerUrl.replace(/.*\//, '')})`}
+              {view.isPopout ? ' Popout' : null}
+              {` (${(this.props.extension.views as any)[TypeViews[view.type]].viewerUrl.replace(/.*\//, '')})`}
             </div>
 
             {this.props.mockApiEnabled && <RunListTrigger runList={runlist as RunList} iframe={this.state.iframe} />}
 
             {this.isEditable() &&
               <div className='view__edit_button'
-                onClick={() => this.props.openEditViewHandler(this.props.id)}>
+                onClick={() => this.props.openEditViewHandler(view.id)}>
                 Edit
               </div>}
           </div>
           <div className={buttonClassName}
-            onClick={() => this.props.deleteViewHandler(this.props.id)}>
+            onClick={() => this.props.deleteViewHandler(view.id)}>
             <img
               alt='Close'
               src={closeButton}
