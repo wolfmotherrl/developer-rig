@@ -36,9 +36,8 @@ interface State {
   configurations?: Configurations;
   currentProject?: RigProject,
   showingExtensionsView: boolean;
-  showingEditView: boolean;
   showingCreateProjectDialog: boolean;
-  idToEdit: string;
+  viewForEdit?: RigExtensionView;
   selectedView: NavItem;
   extensionsViewContainerKey: number;
   userId?: string;
@@ -51,9 +50,7 @@ export class RigComponent extends React.Component<Props, State> {
   public state: State = {
     projects: [],
     showingExtensionsView: false,
-    showingEditView: false,
     showingCreateProjectDialog: false,
-    idToEdit: '0',
     selectedView: NavItem.ProjectOverview,
     extensionsViewContainerKey: 0,
   }
@@ -67,15 +64,13 @@ export class RigComponent extends React.Component<Props, State> {
 
   public openEditViewHandler = (id: string) => {
     this.setState({
-      showingEditView: true,
-      idToEdit: id,
+      viewForEdit: this.state.currentProject.extensionViews.filter((extensionView) => extensionView.id === id)[0],
     });
   }
 
   public closeEditViewHandler = () => {
     this.setState({
-      showingEditView: false,
-      idToEdit: '0',
+      viewForEdit: null,
     });
   }
 
@@ -153,16 +148,11 @@ export class RigComponent extends React.Component<Props, State> {
     this.updateExtensionViews(this.state.currentProject.extensionViews.filter(element => element.id !== id));
   }
 
-  public editViewHandler = (newViewState: EditViewProps) => {
-    const views = this.state.currentProject.extensionViews;
-    views.forEach((element: RigExtensionView) => {
-      if (element.id === this.state.idToEdit) {
-        element.x = newViewState.x;
-        element.y = newViewState.y;
-        element.orientation = newViewState.orientation;
-      }
-    });
-    this.updateExtensionViews(views);
+  public editViewHandler = (viewForEdit: RigExtensionView, newViewState: EditViewProps) => {
+    viewForEdit.x = newViewState.x;
+    viewForEdit.y = newViewState.y;
+    viewForEdit.orientation = newViewState.orientation;
+    this.updateExtensionViews(this.state.currentProject.extensionViews);
     this.closeEditViewHandler();
   }
 
@@ -264,10 +254,9 @@ export class RigComponent extends React.Component<Props, State> {
                 saveHandler={this.createExtensionView}
               />
             )}
-            {this.state.showingEditView && (
+            {this.state.viewForEdit && (
               <EditViewDialog
-                idToEdit={this.state.idToEdit}
-                views={currentProject.extensionViews}
+                viewForEdit={this.state.viewForEdit}
                 closeHandler={this.closeEditViewHandler}
                 saveViewHandler={this.editViewHandler}
               />

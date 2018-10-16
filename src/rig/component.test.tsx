@@ -102,11 +102,9 @@ describe('<RigComponent />', () => {
           wrapper.update();
           const instance = wrapper.instance() as RigComponent;
           instance.openEditViewHandler('1');
-          expect(instance.state.showingEditView).toBe(true);
-          expect(instance.state.idToEdit).toBe('1');
+          expect(instance.state.viewForEdit).toBeTruthy();
           instance.closeEditViewHandler();
-          expect(instance.state.showingEditView).toBe(false);
-          expect(instance.state.idToEdit).toBe('0');
+          expect(instance.state.viewForEdit).toBe(null);
           resolve();
         } catch (ex) {
           reject(ex.message);
@@ -123,16 +121,14 @@ describe('<RigComponent />', () => {
         try {
           wrapper.update();
           const instance = wrapper.instance() as RigComponent;
-          instance.openEditViewHandler('1');
-          expect(instance.state.showingEditView).toBe(true);
-          expect(instance.state.idToEdit).toBe('1');
-          instance.editViewHandler({ x: 25, y: 25 });
           const views = instance.state.currentProject.extensionViews;
-          const editedView = views.filter((element: RigExtensionView) => element.id === '1');
-          expect(editedView[0].x).toEqual(25);
-          expect(editedView[0].y).toEqual(25);
-          expect(instance.state.showingEditView).toBe(false);
-          expect(instance.state.idToEdit).toBe('0');
+          const editedView = views.filter((element: RigExtensionView) => element.id === '1')[0];
+          instance.openEditViewHandler('1');
+          expect(instance.state.viewForEdit).toBe(editedView);
+          instance.editViewHandler(editedView, { x: 25, y: 25 });
+          expect(editedView.x).toEqual(25);
+          expect(editedView.y).toEqual(25);
+          expect(instance.state.viewForEdit).toBe(null);
           resolve();
         } catch (ex) {
           reject(ex.message);

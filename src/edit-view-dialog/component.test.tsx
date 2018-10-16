@@ -5,10 +5,12 @@ import { createViewsForTest } from '../tests/constants/extension';
 import { MobileOrientation } from '../constants/mobile';
 import { ExtensionViewType } from '../constants/extension-coordinator';
 
+const views = createViewsForTest(2, ExtensionViewType.Component, ViewerTypes.LoggedOut, { x: 10, y: 10 });
+views[1].type = ExtensionViewType.Mobile;
+
 describe('<EditViewDialog />', () => {
   const setupShallow = setupShallowTest(EditViewDialog, () => ({
-    idToEdit: '1',
-    views: createViewsForTest(2, ExtensionViewType.Component, ViewerTypes.LoggedOut, { x: 10, y: 10 }),
+    viewForEdit: views[0],
     closeHandler: jest.fn(),
     saveViewHandler: jest.fn(),
   }));
@@ -53,8 +55,7 @@ describe('<EditViewDialog />', () => {
 
   it('component state changes orientation correctly', () => {
     const { wrapper } = setupShallow({
-      idToEdit: '1',
-      views: createViewsForTest(2, ExtensionViewType.Mobile, ViewerTypes.LoggedOut, { orientation: MobileOrientation.Portrait}),
+      viewForEdit: views[1],
     });
 
     let inputs = wrapper.find('RadioOption');
