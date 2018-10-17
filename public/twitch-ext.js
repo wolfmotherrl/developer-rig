@@ -3,7 +3,7 @@
   const developerRig = queries.get('developer_rig');
   return developerRig === 'local';
 })() && (function(ext) {
-  var twitch = window.Twitch = window.Twitch || {};
+  const twitch = window.Twitch = window.Twitch || {};
   twitch.ext = Object.assign(twitch.ext || {}, ext);
 })(function() {
   let authCallback, authData;
@@ -78,7 +78,7 @@
       visibilityCallback = fn;
       isVisible || visibilityCallback(false, null);
     },
-    onPositionChange: fn => {
+    onPositionChanged: fn => {
       positionCallback = fn;
     },
     send: (target, contentType, message) => {
