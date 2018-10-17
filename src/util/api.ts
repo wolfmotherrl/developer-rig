@@ -181,7 +181,7 @@ export async function fetchProducts(clientId: string, token: string): Promise<Pr
 }
 
 export async function saveProduct(clientId: string, token: string, product: Product) {
-  const path = '/v5/bits/extensions/twitch.ext.${clientId}/products/put';
+  const path = `/v5/bits/extensions/twitch.ext.${clientId}/products/put`;
   const deserializedProduct = {
     domain: 'twitch.ext.' + clientId,
     sku: product.sku,
