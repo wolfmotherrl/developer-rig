@@ -359,7 +359,7 @@ export class RigComponent extends React.Component<Props, State> {
           displayName: response.display_name,
           id: response.id,
           login: response.login,
-          profileImageUrl: response.profile_image_url,
+          profileImageUrl: response.profile_image_url || 'https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png',
         };
 
         this.props.userLogin(userSession);
