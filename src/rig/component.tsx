@@ -364,7 +364,7 @@ export class RigComponent extends React.Component<Props, State> {
 
         this.props.userLogin(userSession);
         localStorage.setItem(LocalStorageKeys.RigLogin, JSON.stringify(userSession));
-        window.location.assign('/');
+        window.location.replace('/');
       } catch (ex) {
         this.setState({ error: ex.message });
       }
