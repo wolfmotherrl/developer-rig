@@ -214,6 +214,45 @@ describe('api', () => {
     it('succeeds', async function() {
       await saveProduct('clientId', token, {} as Product);
     });
+
+    it('calls the API with the correct parameters', async function() {
+      const product = {
+        sku: 'sku',
+        displayName: 'name',
+        amount: 100,
+        inDevelopment: 'true',
+        broadcast: 'false',
+        deprecated: false,
+        dirty: true,
+        savedInCatalog: false
+      };
+
+      await saveProduct('clientId', token, product as Product);
+      expect(globalAny.fetch).toHaveBeenCalledWith('https://api.twitch.tv/v5/bits/extensions/twitch.ext.clientId/products/put', {
+        method: 'POST',
+        body: JSON.stringify({
+          product: {
+            domain: 'twitch.ext.clientId',
+            sku: 'sku',
+            displayName: 'name',
+            cost: {
+              amount: 100,
+              type: 'bits',
+            },
+            inDevelopment: true,
+            broadcast: false,
+            expiration: null
+          }
+        }),
+        headers: {
+          Accept: 'application/vnd.twitchtv.v5+json; charset=UTF-8',
+          Authorization: `OAuth ${token}`,
+          'Client-ID': 'clientId',
+          'Content-Type': 'application/json; charset=UTF-8',
+          'X-Requested-With': 'developer-rig; 0.6.0',
+        },
+      });
+    })
   });
 
   describe('fetchNewRelease', () => {
