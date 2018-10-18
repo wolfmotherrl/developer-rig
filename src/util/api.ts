@@ -258,7 +258,7 @@ export async function fetchChannelConfigurationSegments(clientId: string, userId
 }
 
 export async function saveConfigurationSegment(clientId: string, userId: string, secret: string, segment: string, channelId: string, content: string, version: string) {
-  const path = `/extensions/${clientId}/configurations/`;
+  const path = `/extensions/${clientId}/configurations`;
   const headers = {
     Authorization: `Bearer ${createConfigurationToken(secret, userId)}`,
     'Client-ID': clientId,
