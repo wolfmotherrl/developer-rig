@@ -1,7 +1,7 @@
 import { DeveloperRigUserId } from '../constants/rig';
 import { fetchIdForUser, generateId } from './id';
 
-describe('fetch-id-for-user', () => {
+describe('fetchIdForUser', () => {
   const token = 'test';
   const globalAny = global as any;
 
