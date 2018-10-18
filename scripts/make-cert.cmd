@@ -96,7 +96,6 @@ IF ERRORLEVEL 1 (
 SET CA=openssl-ca.cnf
 
 REM Create the certificate authority certificate.
-rem openssl req -x509 -days 99999 -config %CA% -newkey rsa:4096 -sha256 -nodes -out cacert.pem -outform PEM -subj "/C=US/ST=California/L=San Francisco/O=Twitch/OU=Twitch Developer Rig/CN=Twitch Developer Rig CA"
 openssl req -batch -x509 -days 99999 -config %CA% -newkey rsa:4096 -sha256 -nodes -out cacert.pem -outform PEM
 IF ERRORLEVEL 1 (
 	ECHO Cannot create the certificate authority certificate.
@@ -108,7 +107,6 @@ ECHO DNS.1 = localhost.rig.twitch.tv> dns.txt
 ECHO DNS.2 = localhost>> dns.txt
 DEL openssl-server.cnf
 COPY /B "%D%openssl-server.cnf"+dns.txt openssl-server.cnf > NUL
-rem openssl req -config openssl-server.cnf -newkey rsa:2048 -sha256 -nodes -out servercert.csr -outform PEM -subj "/C=US/ST=California/L=San Francisco/O=Twitch/OU=Twitch Developer Rig/CN=Twitch Developer Rig CA"
 openssl req -batch -config openssl-server.cnf -newkey rsa:2048 -sha256 -nodes -out servercert.csr -outform PEM
 IF ERRORLEVEL 1 (
 	ECHO Cannot create the certificate request.
