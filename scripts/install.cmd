@@ -19,13 +19,6 @@ REM Create the temporary directory.
 SET T=%TEMP%\ins%RANDOM%
 MD "%T%"
 
-REM Create the PowerShell script to download the installers.
-SET DL="%T%\dl.ps1"
-ECHO [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" >> %DL%
-ECHO $client = new-object System.Net.WebClient >> %DL%
-ECHO $client.DownloadFile^($args[0], $args[1]^) >> %DL%
-SET DL=powershell -ExecutionPolicy Bypass -file %DL%
-
 REM Download and invoke the installers for Node, Python 2, and Yarn.
 node -v > NUL 2> NUL
 IF NOT ERRORLEVEL 1 (
@@ -56,13 +49,7 @@ REM Clean up, report results, and exit.
 :done
 SET EXIT_CODE=%ERRORLEVEL%
 RD /Q /S %T%
-IF NOT %EXIT_CODE% == 0 (
-	ECHO Installation failed
-) ELSE IF "%MUST_RESTART%" == "yes" (
-	SET MSG=You must restart your machine before using the Developer Rig.
-	powershell -Command "& Write-Host "%MSG%" -ForegroundColor Yellow"
-	SET PAUSE=PAUSE
-)
+IF NOT %EXIT_CODE% == 0 ECHO Installation failed
 %PAUSE%
 EXIT /B %EXIT_CODE%
 
@@ -71,7 +58,14 @@ REM Download and invoke an installer.
 ECHO Downloading %~1...
 SET I="%T%\installer.msi"
 IF EXIST %I% DEL /F /Q %I%
-%DL% %2 %I%
+SET DL="%T%\dl.ps1"
+SET PS=powershell
+ECHO $address = "%~2" >> %DL%
+ECHO $fileName = %I% >> %DL%
+ECHO [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" >> %DL%
+ECHO $client = new-object System.Net.WebClient >> %DL%
+ECHO $client.DownloadFile^($address, $fileName^) >> %DL%
+TYPE %DL% | %PS% -NoProfile -
 IF NOT ERRORLEVEL 1 (
 	ECHO Installing %~1...
 	msiexec /i %I% /quiet /qn /norestart %~3
