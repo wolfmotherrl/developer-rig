@@ -11,6 +11,17 @@ module.exports = function(app) {
 
   const examples = [
     {
+      title: 'Workshop Start Point',
+      description: 'Start of the workshop!',
+      repository: 'lleadbet/twitchcon-workshop-2018',
+      frontendFolderName: 'twitchcon-workshop-2018',
+      frontendCommand: 'npm run host',
+      backendCommand: '',
+      npm: ['i'],
+      sslFolderName: 'conf',
+      expectedDuration: 'a minute or two',
+    },
+    {
       title: 'Hello World',
       description: 'Click a button to change the color on a circle.',
       repository: 'twitchdev/extensions-hello-world',
