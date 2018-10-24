@@ -8,12 +8,13 @@ import { ViewTypeImages } from '../constants/img-map';
 import { RadioOption } from './radio-option';
 import { DivOption } from './div-option';
 import * as closeButton from '../img/close_icon.png';
-import { MobileOrientation, DefaultMobileOrientation, MobileSizes } from '../constants/mobile';
+import { MobileOrientation, DefaultMobileOrientation, MobileSizes, DefaultMobileSize } from '../constants/mobile';
 import { getSupportedAnchors, getSupportedPlatforms } from '../core/models/manifest';
 import { ExtensionAnchor, ExtensionMode, ExtensionPlatform, ExtensionViewType } from '../constants/extension-coordinator';
+import { DeveloperRigUserId } from '../constants/rig';
+import { ChannelIdOrNameInput } from '../channel-id-or-name-input';
 
 export interface ExtensionViewDialogProps {
-  channelId: string;
   extensionViews: ExtensionCoordinator.ExtensionViews;
   closeHandler: Function;
   saveHandler: Function;
@@ -23,6 +24,7 @@ export interface ExtensionViewDialogState {
   extensionViewType: ExtensionAnchor | ExtensionMode | ExtensionPlatform | ExtensionViewType;
   channelId: string;
   frameSize: string;
+  mobileFrameSize: string;
   isChatEnabled: boolean;
   isPopout: boolean;
   viewerType: string;
@@ -34,29 +36,31 @@ export interface ExtensionViewDialogState {
   linkedUserId: string;
   orientation: string;
   opaqueId?: string;
+  error?: string;
   [key: string]: number | string | boolean;
 }
 
 export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProps, ExtensionViewDialogState> {
   public state: ExtensionViewDialogState = {
-    channelId: this.props.channelId,
+    channelId: DeveloperRigUserId,
     extensionViewType: getSupportedAnchors(this.props.extensionViews)[0],
     isChatEnabled: false,
     isPopout: false,
     frameSize: DefaultOverlaySize,
+    mobileFrameSize: DefaultMobileSize,
     viewerType: DefaultViewerType,
     x: 0,
     y: 0,
     width: DefaultCustomDimensions.width,
     height: DefaultCustomDimensions.height,
     identityOption: DefaultIdentityOption,
-    linkedUserId: '888888888',
+    linkedUserId: DeveloperRigUserId,
     orientation: DefaultMobileOrientation,
   }
 
   public onChange = (input: React.FormEvent<HTMLInputElement>) => {
-    const { name, value } = input.currentTarget;
-    this.setState({ [name]: value });
+    const { checked, name, type, value } = input.currentTarget;
+    this.setState({ [name]: type === 'checkbox' ? checked : value });
   }
 
   private renderExtensionTypeComponents() {
@@ -115,7 +119,7 @@ export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProp
 
   private renderMobileFrameSizeComponents() {
     return Object.keys(MobileSizes).map(key => {
-      return <RadioOption key={key} name="frameSize" value={key} onChange={this.onChange} checked={key === this.state.frameSize} />
+      return <RadioOption key={key} name="mobileFrameSize" value={key} onChange={this.onChange} checked={key === this.state.mobileFrameSize} />
     });
   }
 
@@ -131,7 +135,7 @@ export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProp
       return option === IdentityOptions.Linked ? (
         <div key={option}>
           <RadioOption name="identityOption" value={option} onChange={this.onChange} checked={isChecked} />
-          {isChecked && <input type="text" name="linkedUserId" value={this.state.linkedUserId} onChange={this.onChange} />}
+          {isChecked && <ChannelIdOrNameInput labelClassName="vertical-option-label" isUser={true} name="linkedUserId" value={this.state.linkedUserId} onChange={this.onChange} />}
         </div>
       ) : (
           <RadioOption key={option} name="identityOption" value={option} onChange={this.onChange} checked={isChecked} />
@@ -149,8 +153,13 @@ export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProp
     this.props.closeHandler();
   }
 
-  private save = () => {
-    this.props.saveHandler(this.state);
+  private save = async () => {
+    try {
+      await this.props.saveHandler(this.state);
+    } catch (ex) {
+      const idOrName = ~ex.message.indexOf('Cannot fetch user for login') ? 'name' : 'id';
+      this.setState({ error: `Invalid user ${idOrName}` });
+    }
   }
 
   private toggleIsChatEnabled = () => {
@@ -224,7 +233,7 @@ export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProp
                           {this.renderMobileFrameSizeComponents()}
                         </div>
                         <div className='overlay-custom-container'>
-                          <RadioOption className='overlay-custom' name="frameSize" value="Custom" onChange={this.onChange} checked={"Custom" === DefaultIdentityOption} />
+                          <RadioOption className='overlay-custom' name="mobileFrameSize" value="Custom" onChange={this.onChange} checked={"Custom" === DefaultIdentityOption} />
                           <div className='overlay-custom-container'>
                             <div className="custom-subcontainer__input">
                               <label className="inputs__option-label inputs__width-offset"> Width </label>
@@ -342,8 +351,7 @@ export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProp
                   </div>
                 )}
                 <div className="option-div">
-                  <label className="option-label" htmlFor="channelId">Channel ID:</label>
-                  <input type="text" name="channelId" value={this.state.channelId} onChange={this.onChange} />
+                  <ChannelIdOrNameInput labelClassName="option-label" textClassName="option-text" name="channelId" value={this.state.channelId} onChange={this.onChange} />
                 </div>
               </div>
             </div>
@@ -352,6 +360,7 @@ export class ExtensionViewDialog extends React.Component<ExtensionViewDialogProp
           <div className="dialog_bottom-bar">
             <div className="bottom-bar__save" onClick={this.save}> Save </div>
             <div className="bottom-bar__cancel" onClick={this.close}> Cancel </div>
+            <span>{this.state.error}</span>
           </div>
         </div>
       </div>

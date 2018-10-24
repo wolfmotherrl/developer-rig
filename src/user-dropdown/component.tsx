@@ -5,6 +5,7 @@ import { fetchNewRelease } from '../util/api';
 import * as reddot from '../img/reddot.svg';
 import * as whitetriangle from '../img/whitetriangle.svg';
 import './component.sass';
+import { LocalStorageKeys } from '../constants/rig';
 
 export interface PublicProps {
   session: UserSession;
@@ -28,7 +29,7 @@ export class UserDropdownComponent extends React.Component<Props, State> {
   }
 
   private signOut = () => {
-    localStorage.removeItem('rigLogin');
+    localStorage.removeItem(LocalStorageKeys.RigLogin);
     this.props.logout();
   }
 

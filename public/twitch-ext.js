@@ -3,86 +3,57 @@
   const developerRig = queries.get('developer_rig');
   return developerRig === 'local';
 })() && (function(ext) {
-  var twitch = window.Twitch = window.Twitch || {};
+  const twitch = window.Twitch = window.Twitch || {};
   twitch.ext = Object.assign(twitch.ext || {}, ext);
 })(function() {
-  let authCallback, authData;
-  let contextCallback, context, contextChangedFields;
-  let isVisible = true, visibilityCallback;
-  let errorCallback, positionCallback;
-  let followCallback;
-  let listeners = {};
-  let webSocket;
+  const ext = (window.Twitch && window.Twitch.ext) || {};
+  const { onAuthorized } = ext;
+  const listeners = {};
+  let webSocket, authData, authCallback, followCallback;
 
-  window.addEventListener('DOMContentLoaded', (_) => {
+  window.addEventListener('DOMContentLoaded', (_event) => {
     webSocket = new WebSocket('wss://localhost.rig.twitch.tv:3003');
     webSocket.addEventListener('message', function(event) {
       if (authData) {
-        let message = JSON.parse(event.data);
-        if (message.type === 'MESSAGE') {
-          const [channelId, clientId, target] = message.data.topic.split('.').pop().split('-');
-          if (authData.channelId === channelId && authData.clientId === clientId) {
-            const targetListeners = listeners[target];
-            if (targetListeners) {
-              message = JSON.parse(message.data.message);
-              targetListeners.forEach(fn => fn(target, message.content_type, message.content[0]));
+        try {
+          let message = JSON.parse(event.data);
+          if (message.type === 'MESSAGE') {
+            const [channelId, clientId, target] = message.data.topic.split('.').pop().split('-');
+            if (authData.channelId === channelId && authData.clientId === clientId) {
+              const targetListeners = listeners[target];
+              if (targetListeners) {
+                message = JSON.parse(message.data.message);
+                targetListeners.forEach((fn) => invokeTargetListener(fn, target, message.content_type, message.content[0]));
+              }
             }
           }
+        } catch (ex) {
+          console.error(`Cannot parse event data "${event.data}"`);
         }
+      }
+    });
+    window.addEventListener('message', (event) => {
+      if ((event.data && event.data.action) === 'developer-rig-authorized') {
+        authData = Object.assign({}, event.data.response);
       }
     });
   });
 
-  window.addEventListener("message", event => {
-    if (event.data) {
-      switch (event.data.action) {
-        case "extension-frame-authorize-response":
-
-          authData = Object.assign({}, event.data.response);
-          authCallback(authData);
-          break;
-        case 'twitch-ext-context':
-          contextCallback(event.data.context);
-          break;
-        case 'twitch-ext-auth':
-          authCallback(event.data.auth);
-          break;
-        default:
-          break;
-      }
-    }
-  });
-
   return {
-    version: "0.0.0",
-    onAuthorized: fn => {
+    version: '0.0.0',
+    onAuthorized: (fn) => {
+      onAuthorized(fn);
       authCallback = fn;
-      if (authData) {
-        authCallback(authData);
-      } else {
-        window.parent.postMessage({ action: "extension-frame-authorize" }, '*');
+      if (!authData) {
+        window.parent.postMessage({ action: 'developer-rig-authorize' }, '*');
       }
-    },
-    onError: fn => {
-      errorCallback = fn;
-    },
-    onContext: fn => {
-      contextCallback = fn;
-      context && contextCallback(context, contextChangedFields);
-      setTimeout(() => {
-        contextCallback({ "mode": "viewer", "language": "en", "theme": "light", "game": "", "playbackMode": "video" },
-          ["mode", "language", "theme", "game", "playbackMode"]);
-      });
-    },
-    onVisibilityChanged: fn => {
-      visibilityCallback = fn;
-      isVisible || visibilityCallback(false, null);
-    },
-    onPositionChange: fn => {
-      positionCallback = fn;
     },
     send: (target, contentType, message) => {
-      window.parent.parent.postMessage({ action: "extension-frame-pubsub", channelId: authData.channelId, target, contentType, message }, '*');
+      if (authData && authData.channelId) {
+        window.parent.parent.postMessage({ action: 'developer-rig-pubsub', channelId: authData.channelId, target, contentType, message }, '*');
+      } else {
+        console.warn('Cannot send; no authorization data');
+      }
     },
     listen: (target, callback) => {
       let targetListeners = listeners[target];
@@ -107,12 +78,14 @@
       }
     },
     actions: {
-      followChannel: channelName => {
+      followChannel: (channelName) => {
         if (typeof followCallback === 'function') {
           setTimeout(() => followCallback(true, channelName), 11);
         }
       },
-      onFollow: callback => {
+      minimize: () => {
+      },
+      onFollow: (callback) => {
         followCallback = callback;
       },
       requestIdShare: () => {
@@ -124,13 +97,13 @@
         }
       },
     },
-    rig: {
-      log: (message, ...optionalParams) => {
-        window.parent.parent.postMessage({
-          action: 'twitch-ext-rig-log',
-          messages: [message, ...optionalParams],
-        }, '*');
-      }
-    },
   };
+
+  function invokeTargetListener(fn, target, contentType, content) {
+    try {
+      fn(target, contentType, content);
+    } catch (ex) {
+      console.error(`Invocation of target listener failed with target "${target}" and content type "${contentType}":`, ex.message);
+    }
+  }
 }());

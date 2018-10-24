@@ -13,6 +13,7 @@ const setupShallow = setupShallowTest(ExtensionMobileView, () => ({
   frameSize: { width: 100, height: 100 },
   position: { x: 0, y: 0 },
   role: ExtensionMode.Viewer,
+  isLocal: false,
   bindIframeToParent: jest.fn(),
   installationAbilities: {
     isChatEnabled: true,

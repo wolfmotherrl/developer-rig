@@ -11,7 +11,7 @@ import { NavItem } from '../constants/nav-items'
 import { OverlaySizes } from '../constants/overlay-sizes';
 import { IdentityOptions } from '../constants/identity-options';
 import { MobileSizes } from '../constants/mobile';
-import { Configurations, RigExtensionView, RigProject } from '../core/models/rig';
+import { ChannelSegments, Configurations, RigExtensionView, RigProject } from '../core/models/rig';
 import { ExtensionManifest } from '../core/models/manifest';
 import { UserSession } from '../core/models/user-session';
 import { SignInDialog } from '../sign-in-dialog';
@@ -19,11 +19,8 @@ import { ExtensionMode, ExtensionViewType } from '../constants/extension-coordin
 import { ProjectView } from '../project-view';
 import { CreateProjectDialog } from '../create-project-dialog';
 import { ConfigurationServiceView } from '../configuration-service-view';
-import { zip } from '../util/zip';
-
-enum LocalStorageKeys {
-  RigLogin = 'rigLogin',
-}
+import { fetchIdForUser } from '../util/id';
+import { LocalStorageKeys } from '../constants/rig';
 
 export interface ReduxStateProps {
   session: UserSession;
@@ -39,9 +36,8 @@ interface State {
   configurations?: Configurations;
   currentProject?: RigProject,
   showingExtensionsView: boolean;
-  showingEditView: boolean;
   showingCreateProjectDialog: boolean;
-  idToEdit: string;
+  viewForEdit?: RigExtensionView;
   selectedView: NavItem;
   extensionsViewContainerKey: number;
   userId?: string;
@@ -54,9 +50,7 @@ export class RigComponent extends React.Component<Props, State> {
   public state: State = {
     projects: [],
     showingExtensionsView: false,
-    showingEditView: false,
     showingCreateProjectDialog: false,
-    idToEdit: '0',
     selectedView: NavItem.ProjectOverview,
     extensionsViewContainerKey: 0,
   }
@@ -70,15 +64,13 @@ export class RigComponent extends React.Component<Props, State> {
 
   public openEditViewHandler = (id: string) => {
     this.setState({
-      showingEditView: true,
-      idToEdit: id,
+      viewForEdit: this.state.currentProject.extensionViews.filter((extensionView) => extensionView.id === id)[0],
     });
   }
 
   public closeEditViewHandler = () => {
     this.setState({
-      showingEditView: false,
-      idToEdit: '0',
+      viewForEdit: null,
     });
   }
 
@@ -101,38 +93,41 @@ export class RigComponent extends React.Component<Props, State> {
   }
 
   public getFrameSizeFromDialog(extensionViewDialogState: ExtensionViewDialogState) {
-    if (extensionViewDialogState.frameSize === 'Custom') {
+    const key = extensionViewDialogState.extensionViewType === ExtensionViewType.Mobile ? 'mobileFrameSize' : 'frameSize';
+    if (extensionViewDialogState[key] === 'Custom') {
       return {
         width: extensionViewDialogState.width,
         height: extensionViewDialogState.height
       };
     }
-    if (extensionViewDialogState.extensionViewType === ExtensionViewType.Mobile) {
-      return MobileSizes[extensionViewDialogState.frameSize];
-    }
 
-    return OverlaySizes[extensionViewDialogState.frameSize];
+    const sizes = extensionViewDialogState.extensionViewType === ExtensionViewType.Mobile ? MobileSizes : OverlaySizes;
+    return sizes[extensionViewDialogState[key]];
   }
 
   public createExtensionView = async (extensionViewDialogState: ExtensionViewDialogState) => {
+    let { channelId } = extensionViewDialogState;
+    channelId = await fetchIdForUser(this.props.session.authToken, channelId);
     const extensionViews = this.state.currentProject.extensionViews || [];
     const mode = extensionViewDialogState.extensionViewType === ExtensionMode.Config ? ExtensionMode.Config :
       extensionViewDialogState.extensionViewType === ExtensionMode.Dashboard ? ExtensionMode.Dashboard : ExtensionMode.Viewer;
     const linked = extensionViewDialogState.identityOption === IdentityOptions.Linked ||
       extensionViewDialogState.extensionViewType === ExtensionMode.Config ||
       extensionViewDialogState.extensionViewType === ExtensionMode.Dashboard;
+    const linkedUserId = linked && extensionViewDialogState.linkedUserId ?
+      await fetchIdForUser(this.props.session.authToken, extensionViewDialogState.linkedUserId) : '';
     const nextExtensionViewId = 1 + extensionViews.reduce((reduced: number, view: RigExtensionView) => {
       return Math.max(reduced, parseInt(view.id, 10));
     }, 0);
     extensionViews.push({
       id: nextExtensionViewId.toString(),
-      channelId: extensionViewDialogState.channelId,
+      channelId,
       type: extensionViewDialogState.extensionViewType,
       features: {
         isChatEnabled: extensionViewDialogState.isChatEnabled,
       },
       linked,
-      linkedUserId: extensionViewDialogState.linkedUserId,
+      linkedUserId,
       opaqueId: extensionViewDialogState.opaqueId,
       mode,
       isPopout: extensionViewDialogState.isPopout,
@@ -152,16 +147,11 @@ export class RigComponent extends React.Component<Props, State> {
     this.updateExtensionViews(this.state.currentProject.extensionViews.filter(element => element.id !== id));
   }
 
-  public editViewHandler = (newViewState: EditViewProps) => {
-    const views = this.state.currentProject.extensionViews;
-    views.forEach((element: RigExtensionView) => {
-      if (element.id === this.state.idToEdit) {
-        element.x = newViewState.x;
-        element.y = newViewState.y;
-        element.orientation = newViewState.orientation;
-      }
-    });
-    this.updateExtensionViews(views);
+  public editViewHandler = (viewForEdit: RigExtensionView, newViewState: EditViewProps) => {
+    viewForEdit.x = newViewState.x;
+    viewForEdit.y = newViewState.y;
+    viewForEdit.orientation = newViewState.orientation;
+    this.updateExtensionViews(this.state.currentProject.extensionViews);
     this.closeEditViewHandler();
   }
 
@@ -169,9 +159,9 @@ export class RigComponent extends React.Component<Props, State> {
     this.state.currentProject && await stopHosting();
     this.setState((previousState) => {
       const previousProjects = previousState.currentProject ? previousState.projects : [];
-      localStorage.setItem('currentProjectIndex', previousProjects.length.toString());
+      localStorage.setItem(LocalStorageKeys.CurrentProjectIndex, previousProjects.length.toString());
       const projects = [...previousProjects, project];
-      localStorage.setItem('projects', JSON.stringify(projects));
+      localStorage.setItem(LocalStorageKeys.Projects, JSON.stringify(projects));
       return { currentProject: project, projects, selectedView: NavItem.ProjectOverview, showingCreateProjectDialog: false };
     });
   }
@@ -180,7 +170,7 @@ export class RigComponent extends React.Component<Props, State> {
     this.setState((previousState) => {
       const currentProject = Object.assign(previousState.currentProject, project);
       const projects = previousState.projects;
-      localStorage.setItem('projects', JSON.stringify(projects));
+      localStorage.setItem(LocalStorageKeys.Projects, JSON.stringify(projects));
       return { currentProject, projects };
     });
   }
@@ -195,12 +185,31 @@ export class RigComponent extends React.Component<Props, State> {
       await stopHosting();
       this.setState({ currentProject: selectedProject, selectedView: NavItem.ProjectOverview });
       this.refreshViews();
-      localStorage.setItem('currentProjectIndex', this.currentProjectIndex.toString());
+      localStorage.setItem(LocalStorageKeys.CurrentProjectIndex, this.currentProjectIndex.toString());
     }
   }
 
   public closeProjectDialog = () => {
     this.setState({ showingCreateProjectDialog: false });
+  }
+
+  public deleteProject = async () => {
+    const message = `Are you sure you want to delete project "${this.state.currentProject.manifest.name}"?\n\n` +
+      `This will not delete any files${this.state.currentProject.isLocal ? '' : ' or affect your extension online'}.`;
+    if (confirm(message)) {
+      await stopHosting();
+      this.setState((previousState) => {
+        const projects = previousState.projects.filter((project) => project !== previousState.currentProject);
+        const currentProject = projects.length ? projects[0] : null;
+        localStorage.setItem(LocalStorageKeys.CurrentProjectIndex, '0');
+        localStorage.setItem(LocalStorageKeys.Projects, JSON.stringify(projects));
+        return {
+          currentProject, projects,
+          extensionsViewContainerKey: previousState.extensionsViewContainerKey + 1,
+          selectedView: NavItem.ProjectOverview,
+        };
+      });
+    }
   }
 
   public render() {
@@ -214,6 +223,7 @@ export class RigComponent extends React.Component<Props, State> {
           selectProject={this.selectProject}
           manifest={currentProject ? currentProject.manifest : null}
           selectedView={this.state.selectedView}
+          deleteProject={this.deleteProject}
           viewerHandler={this.viewerHandler}
           error={this.state.error}
         />
@@ -225,7 +235,7 @@ export class RigComponent extends React.Component<Props, State> {
           <>
             {this.state.selectedView === NavItem.ProductManagement && <ProductManagementViewContainer clientId={currentProject.manifest.id} />}
             {this.state.selectedView === NavItem.ProjectOverview && currentProject && <ProjectView
-              key={this.currentProjectIndex}
+              key={`ProjectView${this.currentProjectIndex}`}
               rigProject={currentProject}
               userId={this.state.userId}
               onChange={this.updateProject}
@@ -258,16 +268,14 @@ export class RigComponent extends React.Component<Props, State> {
             />}
             {this.state.showingExtensionsView && (
               <ExtensionViewDialog
-                channelId="265737932"
                 extensionViews={currentProject.manifest.views}
                 closeHandler={this.closeExtensionViewDialog}
                 saveHandler={this.createExtensionView}
               />
             )}
-            {this.state.showingEditView && (
+            {this.state.viewForEdit && (
               <EditViewDialog
-                idToEdit={this.state.idToEdit}
-                views={currentProject.extensionViews}
+                viewForEdit={this.state.viewForEdit}
                 closeHandler={this.closeEditViewHandler}
                 saveViewHandler={this.editViewHandler}
               />
@@ -292,18 +300,18 @@ export class RigComponent extends React.Component<Props, State> {
   }
 
   private loadProjects = async () => {
-    const projectsValue = localStorage.getItem('projects');
+    const projectsValue = localStorage.getItem(LocalStorageKeys.Projects);
     const { userId } = this.state;
     if (projectsValue) {
       const projects = JSON.parse(projectsValue) as RigProject[];
-      const currentProject = projects[Number(localStorage.getItem('currentProjectIndex') || 0)];
+      const currentProject = projects[Number(localStorage.getItem(LocalStorageKeys.CurrentProjectIndex) || 0)];
       const selectedView = currentProject.backendCommand || currentProject.frontendCommand || currentProject.frontendFolderName ?
         NavItem.ProjectOverview : NavItem.ExtensionViews;
       this.setState({ currentProject, projects, selectedView });
       const { manifest, extensionViews, secret } = currentProject;
       await this.updateConfiguration(manifest, extensionViews, this.state.userId, secret);
     } else if (process.env.EXT_CLIENT_ID && process.env.EXT_SECRET && process.env.EXT_VERSION) {
-      const serializedExtensionViews = localStorage.getItem('extensionViews');
+      const serializedExtensionViews = localStorage.getItem(LocalStorageKeys.ExtensionViews);
       const currentProject: RigProject = {
         extensionViews: serializedExtensionViews ? JSON.parse(serializedExtensionViews) : [],
         isLocal: process.env.EXT_SECRET.startsWith('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk'),
@@ -316,14 +324,14 @@ export class RigComponent extends React.Component<Props, State> {
       };
       const projects = [currentProject];
       this.setState({ currentProject, projects });
-      localStorage.setItem('projects', JSON.stringify(projects));
-      localStorage.setItem('currentProjectIndex', '0');
+      localStorage.setItem(LocalStorageKeys.Projects, JSON.stringify(projects));
+      localStorage.setItem(LocalStorageKeys.CurrentProjectIndex, '0');
       const { isLocal, secret, manifest: { id: clientId, version } } = currentProject;
       try {
         const manifest = await fetchUserExtensionManifest(isLocal, userId, secret, clientId, version);
         this.setState((previousState) => {
           Object.assign(previousState.currentProject, { manifest });
-          localStorage.setItem('projects', JSON.stringify([previousState.currentProject]));
+          localStorage.setItem(LocalStorageKeys.Projects, JSON.stringify([previousState.currentProject]));
           return previousState;
         });
       } catch (ex) {
@@ -338,15 +346,15 @@ export class RigComponent extends React.Component<Props, State> {
       try {
         const channelIds = extensionViews ?
           Array.from(new Set<string>(extensionViews.map((view) => view.channelId))) : [];
-        const channelValues = await Promise.all(channelIds.map((channelId) => (
-          fetchChannelConfigurationSegments(clientId, userId, channelId, secret)
+        const channelSegmentMaps = await Promise.all(channelIds.map((channelId) => (
+          fetchChannelConfigurationSegments(clientId, userId, channelId, secret).then((segmentMap) => ({ channelId, segmentMap }))
         )));
         const configurations = {
           globalSegment: await fetchGlobalConfigurationSegment(clientId, userId, secret),
-          channelSegments: zip(channelIds, channelValues).reduce((segments, pair) => {
-            segments[pair[0]] = pair[1];
+          channelSegments: channelSegmentMaps.reduce((segments, channelSegmentMap) => {
+            segments[channelSegmentMap.channelId] = channelSegmentMap.segmentMap;
             return segments;
-          }, {}),
+          }, {} as ChannelSegments),
         };
         this.setState({ configurations });
       } catch (ex) {
@@ -375,7 +383,7 @@ export class RigComponent extends React.Component<Props, State> {
 
         this.props.userLogin(userSession);
         localStorage.setItem(LocalStorageKeys.RigLogin, JSON.stringify(userSession));
-        window.location.assign('/');
+        window.location.replace('/');
       } catch (ex) {
         this.setState({ error: ex.message });
       }

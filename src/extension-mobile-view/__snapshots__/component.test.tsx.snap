@@ -78,6 +78,7 @@ ShallowWrapper {
             "isChatEnabled": true,
           }
     }
+    isLocal={false}
     orientation="Portrait"
     position={
         Object {
@@ -178,6 +179,7 @@ ShallowWrapper {
                                 "isChatEnabled": true,
                               }
                 }
+                isLocal={false}
                 isPopout={false}
                 mode="viewer"
                 type="mobile"
@@ -265,6 +267,7 @@ ShallowWrapper {
                               "isChatEnabled": true,
                             }
           }
+          isLocal={false}
           isPopout={false}
           mode="viewer"
           type="mobile"
@@ -346,6 +349,7 @@ ShallowWrapper {
           "installationAbilities": Object {
             "isChatEnabled": true,
           },
+          "isLocal": false,
           "isPopout": false,
           "mode": "viewer",
           "type": "mobile",
@@ -443,6 +447,7 @@ ShallowWrapper {
                                         "isChatEnabled": true,
                                       }
                     }
+                    isLocal={false}
                     isPopout={false}
                     mode="viewer"
                     type="mobile"
@@ -530,6 +535,7 @@ ShallowWrapper {
                                     "isChatEnabled": true,
                                   }
             }
+            isLocal={false}
             isPopout={false}
             mode="viewer"
             type="mobile"
@@ -611,6 +617,7 @@ ShallowWrapper {
             "installationAbilities": Object {
               "isChatEnabled": true,
             },
+            "isLocal": false,
             "isPopout": false,
             "mode": "viewer",
             "type": "mobile",

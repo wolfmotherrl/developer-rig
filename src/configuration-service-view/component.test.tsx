@@ -1,21 +1,29 @@
 import { setupShallowTest } from '../tests/enzyme-util/shallow';
 import { ConfigurationServiceView } from './component';
 import { createExtensionManifestForTest } from '../tests/constants/extension';
+import { DeveloperRigUserId, LocalStorageKeys } from '../constants/rig';
 
 const globalAny = global as any;
 
 function mockApiFunctions() {
-  const original = require.requireActual('../util/api');
   return {
-    ...original,
+    ...require.requireActual('../util/api'),
     fetchChannelConfigurationSegments: jest.fn().mockImplementation(() => Promise.resolve({})),
-    fetchUser: jest.fn().mockImplementation((_, login) => Promise.resolve(login === 'developerrig' ? { id: '999999999' } : null)),
-  }
+  };
 }
 jest.mock('../util/api', () => mockApiFunctions());
 const api = require.requireMock('../util/api');
+function mockIdFunctions() {
+  return {
+    ...require.requireActual('../util/id'),
+    fetchIdForUser: jest.fn().mockImplementation((_, id) => id === 'developerrig' ?
+      Promise.resolve(DeveloperRigUserId) : Promise.reject(new Error(`Cannot fetch user "${id}"`))),
+  };
+}
+jest.mock('../util/id', () => mockIdFunctions());
+const { fetchIdForUser } = require.requireMock('../util/id');
 
-localStorage.setItem('rigLogin', JSON.stringify({ authToken: 1 }));
+localStorage.setItem(LocalStorageKeys.RigLogin, JSON.stringify({ authToken: 1 }));
 
 describe('<ConfigurationServiceView />', () => {
   const setupShallow = setupShallowTest(ConfigurationServiceView, () => ({
@@ -37,7 +45,7 @@ describe('<ConfigurationServiceView />', () => {
       frontendCommand: 'test',
       backendCommand: 'test',
     },
-    userId: '265737932',
+    userId: DeveloperRigUserId,
     saveHandler: jest.fn(),
   }));
 
@@ -51,7 +59,7 @@ describe('<ConfigurationServiceView />', () => {
       const { wrapper } = setupShallow();
       [
         ['configurationType', 'select', 'developer'],
-        ['channelId', 'input[name="channelId"]', 'developerrig'],
+        ['channelId', 'ChannelIdOrNameInput', 'developerrig'],
       ].forEach(([name, selector, value]) => {
         wrapper.find(selector).simulate('change', { currentTarget: { name, value } });
         wrapper.update();
@@ -60,7 +68,7 @@ describe('<ConfigurationServiceView />', () => {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
           try {
-            expect(api.fetchUser).toHaveBeenCalled();
+            expect(fetchIdForUser).toHaveBeenCalled();
             expect(api.fetchChannelConfigurationSegments).toHaveBeenCalled();
             wrapper.update();
             const instance = wrapper.instance() as ConfigurationServiceView;
@@ -77,14 +85,13 @@ describe('<ConfigurationServiceView />', () => {
       const { wrapper } = setupShallow();
       wrapper.find('select').simulate('change', { currentTarget: { name: 'configurationType', value: 'developer' } });
       const value = 'unknown';
-      wrapper.find('input[name="channelId"]').simulate('change', { currentTarget: { name: 'channelId', value } });
+      wrapper.find('ChannelIdOrNameInput').simulate('change', { currentTarget: { name: 'channelId', value } });
       wrapper.update();
       wrapper.find('.configuration-service-view__button').first().simulate('click');
       return new Promise((resolve, reject) => {
         setTimeout(() => {
           try {
-            expect(api.fetchUser).toHaveBeenCalled();
-            expect(api.fetchChannelConfigurationSegments).toHaveBeenCalled();
+            expect(fetchIdForUser).toHaveBeenCalled();
             wrapper.update();
             const instance = wrapper.instance() as ConfigurationServiceView;
             expect(instance.state.fetchStatus).toEqual(`Cannot fetch user "${value}"`);
@@ -125,7 +132,7 @@ describe('<ConfigurationServiceView />', () => {
       const value = 'broadcaster';
       [
         ['configurationType', 'select'],
-        ['channelId', 'input[name="channelId"]'],
+        ['channelId', 'ChannelIdOrNameInput'],
         ['configuration', 'textarea'],
         ['version', 'input[name="version"]'],
       ].forEach(([name, selector]) => {
@@ -154,7 +161,7 @@ describe('<ConfigurationServiceView />', () => {
       const value = 'broadcaster';
       [
         ['configurationType', 'select'],
-        ['channelId', 'input[name="channelId"]'],
+        ['channelId', 'ChannelIdOrNameInput'],
         ['configuration', 'textarea'],
         ['version', 'input[name="version"]'],
       ].forEach(([name, selector]) => {

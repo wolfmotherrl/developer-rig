@@ -1,5 +1,6 @@
 import { setupShallowTest } from '../tests/enzyme-util/shallow';
 import { UserDropdownComponent } from './component';
+import { LocalStorageKeys } from '../constants/rig';
 
 describe('<UserDropdownComponent />', () => {
   const defaultGenerator = () => ({
@@ -38,7 +39,7 @@ describe('<UserDropdownComponent />', () => {
   it('signs out', () => {
     const { wrapper } = setupRenderer();
     wrapper.find('li').last().simulate('click');
-    expect(localStorage.getItem('rigLogin')).toEqual(null);
+    expect(localStorage.getItem(LocalStorageKeys.RigLogin)).toEqual(null);
     expect(wrapper.instance().props.logout).toHaveBeenCalledTimes(1);
   });
 });

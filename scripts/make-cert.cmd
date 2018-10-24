@@ -3,6 +3,7 @@ SETLOCAL
 
 REM https://stackoverflow.com/questions/10175812/how-to-create-a-self-signed-certificate-with-openssl
 REM https://stackoverflow.com/questions/21297139/how-do-you-sign-a-certificate-signing-request-with-your-certification-authority
+REM https://www.shellhacks.com/create-csr-openssl-without-prompt-non-interactive/
 
 REM Check for elevation.
 CALL "%~dp0check-make-cert.cmd"
@@ -92,12 +93,10 @@ IF ERRORLEVEL 1 (
 	ECHO Cannot create certificate serial number.
 	EXIT /B 1
 )
-FOR /L %%I IN (1,1,7) DO ECHO.>> enters.txt
-FOR /L %%I IN (1,1,2) DO ECHO y>> yes.txt
 SET CA=openssl-ca.cnf
 
 REM Create the certificate authority certificate.
-openssl req -x509 -days 99999 -config %CA% -newkey rsa:4096 -sha256 -nodes -out cacert.pem -outform PEM < enters.txt
+openssl req -batch -x509 -days 99999 -config %CA% -newkey rsa:4096 -sha256 -nodes -out cacert.pem -outform PEM
 IF ERRORLEVEL 1 (
 	ECHO Cannot create the certificate authority certificate.
 	EXIT /B 1
@@ -108,7 +107,7 @@ ECHO DNS.1 = localhost.rig.twitch.tv> dns.txt
 ECHO DNS.2 = localhost>> dns.txt
 DEL openssl-server.cnf
 COPY /B "%D%openssl-server.cnf"+dns.txt openssl-server.cnf > NUL
-openssl req -config openssl-server.cnf -newkey rsa:2048 -sha256 -nodes -out servercert.csr -outform PEM < enters.txt
+openssl req -batch -config openssl-server.cnf -newkey rsa:2048 -sha256 -nodes -out servercert.csr -outform PEM
 IF ERRORLEVEL 1 (
 	ECHO Cannot create the certificate request.
 	EXIT /B 1
@@ -118,7 +117,7 @@ REM Create the server certificate.
 DEL %CA%
 COPY /B "%D%%CA%"+"%D%openssl-ca.add" %CA%
 ECHO unique_subject = no> index.txt.attr
-openssl ca -config %CA% -policy signing_policy -extensions signing_req -out servercert.pem -infiles servercert.csr < yes.txt
+openssl ca -batch -config %CA% -policy signing_policy -extensions signing_req -out servercert.pem -infiles servercert.csr
 IF ERRORLEVEL 1 (
 	ECHO Cannot create the server certificate.
 	EXIT /B 1

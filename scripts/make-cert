@@ -3,6 +3,7 @@
 # https://stackoverflow.com/questions/10175812/how-to-create-a-self-signed-certificate-with-openssl
 # https://stackoverflow.com/questions/21297139/how-do-you-sign-a-certificate-signing-request-with-your-certification-authority
 # https://stackoverflow.com/questions/35031149/set-imported-certificate-to-always-be-trusted-in-mac-os-x
+# https://www.shellhacks.com/create-csr-openssl-without-prompt-non-interactive/
 
 # Check the platform.
 if [ "$(uname)" != "Darwin" ]; then
@@ -47,20 +48,20 @@ else
 	openssl rand -hex 4 > serial.txt
 
 	# Create the certificate authority certificate.
-	echo -e '\n\n\n\n\n\n\n' | openssl req -x509 -days 99999 -config "$D/openssl-ca.cnf" -newkey rsa:4096 -sha256 -nodes -out cacert.pem -outform PEM
+	openssl req -batch -x509 -days 99999 -config "$D/openssl-ca.cnf" -newkey rsa:4096 -sha256 -nodes -out cacert.pem -outform PEM
 	check "create the certificate authority certificate"
 
 	# Create the certificate requests for the Developer Rig and localhost.
 	cp "$D/openssl-server.cnf" .
 	echo "DNS.1 = localhost.rig.twitch.tv" >> openssl-server.cnf
 	echo "DNS.2 = localhost" >> openssl-server.cnf
-	echo -e '\n\n\n\n\n\n\n' | openssl req -config openssl-server.cnf -newkey rsa:2048 -sha256 -nodes -out servercert.csr -outform PEM
+	openssl req -batch -config openssl-server.cnf -newkey rsa:2048 -sha256 -nodes -out servercert.csr -outform PEM
 	check "create the certificate request"
 
 	# Create the server certificates for the Developer Rig and localhost.
 	cat "$D/openssl-ca.cnf" "$D/openssl-ca.add" > openssl-ca.cnf
 	echo "unique_subject = no" > index.txt.attr
-	yes | openssl ca -config openssl-ca.cnf -policy signing_policy -extensions signing_req -out servercert.pem -infiles servercert.csr
+	openssl ca -batch -config openssl-ca.cnf -policy signing_policy -extensions signing_req -out servercert.pem -infiles servercert.csr
 	check "create the server certificate"
 
 	# Move all desired files to the Developer Rig ssl directory.

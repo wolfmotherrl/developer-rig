@@ -75,20 +75,11 @@ export class ExtensionViewContainer extends React.Component<Props, State> {
         return (
           <ExtensionView
             key={view.id}
-            id={view.id}
-            channelId={view.channelId}
+            view={view}
             configuration={configuration}
             extension={extension}
-            installationAbilities={view.features}
-            type={view.type}
-            mode={view.mode}
             role={view.mode === ExtensionMode.Viewer ? view.role : ConfigNames[view.mode]}
-            frameSize={view.frameSize}
-            position={{ x: view.x, y: view.y }}
-            linked={view.linked}
             isLocal={this.props.isLocal}
-            isPopout={view.isPopout}
-            orientation={view.orientation}
             openEditViewHandler={this.props.openEditViewHandler}
             deleteViewHandler={this.props.deleteExtensionViewHandler}
             mockApiEnabled={this.state.mockTriggersEnabled}
@@ -121,9 +112,7 @@ export class ExtensionViewContainer extends React.Component<Props, State> {
           {extensionViews}
         </div>
         <div>
-          <ExtensionViewButton
-            onClick={this.openExtensionViewDialog}>
-          </ExtensionViewButton>
+          <ExtensionViewButton onClick={this.openExtensionViewDialog} />
         </div>
         <Console />
       </div>

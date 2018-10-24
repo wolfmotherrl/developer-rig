@@ -1,6 +1,6 @@
 import { ExtensionManifest } from '../core/models/manifest';
 import { ExtensionState, ExtensionViewType } from '../constants/extension-coordinator';
-import { generateId } from './generate-id';
+import { generateId } from './id';
 import { toSnakeCase } from './case';
 
 export function generateManifest(baseUri: string, ownerName: string, name: string, types: ExtensionViewType[]): ExtensionManifest {

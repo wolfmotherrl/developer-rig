@@ -8,6 +8,7 @@ import { ViewerTypes } from '../constants/viewer-types';
 import { RigExtensionView, RigProject } from '../core/models/rig';
 import { ExtensionViewDialogState } from '../extension-view-dialog';
 import { ExtensionAnchor, ExtensionViewType } from '../constants/extension-coordinator';
+import { DefaultMobileSize } from '../constants/mobile';
 
 let globalAny = global as any;
 
@@ -16,7 +17,7 @@ localStorage.setItem('projects', '[{"manifest":{}},{"manifest":{}}]');
 const setupShallow = setupShallowTest(RigComponent, () => ({
   session: { displayName: 'test', login: 'test', id: 'test', profileImageUrl: 'test.png', authToken: 'test' },
   saveManifest: jest.fn(),
-  userLogin: jest.fn()
+  userLogin: jest.fn(),
 }));
 
 describe('<RigComponent />', () => {
@@ -102,11 +103,9 @@ describe('<RigComponent />', () => {
           wrapper.update();
           const instance = wrapper.instance() as RigComponent;
           instance.openEditViewHandler('1');
-          expect(instance.state.showingEditView).toBe(true);
-          expect(instance.state.idToEdit).toBe('1');
+          expect(instance.state.viewForEdit).toBeTruthy();
           instance.closeEditViewHandler();
-          expect(instance.state.showingEditView).toBe(false);
-          expect(instance.state.idToEdit).toBe('0');
+          expect(instance.state.viewForEdit).toBe(null);
           resolve();
         } catch (ex) {
           reject(ex.message);
@@ -123,16 +122,14 @@ describe('<RigComponent />', () => {
         try {
           wrapper.update();
           const instance = wrapper.instance() as RigComponent;
-          instance.openEditViewHandler('1');
-          expect(instance.state.showingEditView).toBe(true);
-          expect(instance.state.idToEdit).toBe('1');
-          instance.editViewHandler({ x: 25, y: 25 });
           const views = instance.state.currentProject.extensionViews;
-          const editedView = views.filter((element: RigExtensionView) => element.id === '1');
-          expect(editedView[0].x).toEqual(25);
-          expect(editedView[0].y).toEqual(25);
-          expect(instance.state.showingEditView).toBe(false);
-          expect(instance.state.idToEdit).toBe('0');
+          const editedView = views.filter((element: RigExtensionView) => element.id === '1')[0];
+          instance.openEditViewHandler('1');
+          expect(instance.state.viewForEdit).toBe(editedView);
+          instance.editViewHandler(editedView, { x: 25, y: 25 });
+          expect(editedView.x).toEqual(25);
+          expect(editedView.y).toEqual(25);
+          expect(instance.state.viewForEdit).toBe(null);
           resolve();
         } catch (ex) {
           reject(ex.message);
@@ -204,7 +201,7 @@ describe('<RigComponent />', () => {
     const testDialogState = {
       width: 0,
       height: 0,
-      frameSize: 'iPhone X (375x822)',
+      mobileFrameSize: DefaultMobileSize,
       extensionViewType: ExtensionViewType.Mobile
     } as ExtensionViewDialogState;
     const expectedMobileFrameSize = {
@@ -259,6 +256,7 @@ describe('<RigComponent />', () => {
     expect(globalAny.fetch).toHaveBeenCalled();
   });
 
+  globalAny.confirm = jest.fn().mockImplementation(() => true);
   globalAny.fetch = jest.fn().mockImplementation(() => Promise.resolve({
     status: 200,
     json: () => Promise.resolve({}),
@@ -288,6 +286,26 @@ describe('<RigComponent />', () => {
     const instance = wrapper.instance() as RigComponent;
     await instance.selectProject(1);
     expect(globalAny.fetch).toHaveBeenCalled();
+  });
+
+  it('deletes project', async () => {
+    const { wrapper } = setupShallow();
+    return new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        try {
+          wrapper.update();
+          const currentProject = { manifest: createExtensionManifestForTest() } as RigProject;
+          wrapper.setState({ currentProject });
+          const instance = wrapper.instance() as RigComponent;
+          await instance.deleteProject();
+          expect(globalAny.confirm).toHaveBeenCalled();
+          expect(instance.state.currentProject).not.toBe(currentProject);
+          resolve();
+        } catch (ex) {
+          reject(ex.message);
+        }
+      });
+    });
   });
 
   it('correctly displays an error if user fetch fails', done => {

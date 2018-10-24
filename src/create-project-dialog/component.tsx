@@ -8,6 +8,7 @@ import { RigProject } from '../core/models/rig';
 import { fetchUserExtensionManifest } from '../util/extension';
 import { generateManifest } from '../util/generate-manifest';
 import { ExtensionViewType } from '../constants/extension-coordinator';
+import { LocalStorageKeys } from '../constants/rig';
 
 interface Props {
   userId: string;
@@ -180,7 +181,7 @@ export class CreateProjectDialog extends React.Component<Props, State>{
         this.setState({ errorMessage: 'Creating your project...' });
         if (this.state.rigProject.isLocal) {
           this.state.rigProject.secret = this.state.rigProject.secret || 'kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk';
-          const ownerName: string = JSON.parse(localStorage.getItem('rigLogin')).login;
+          const ownerName: string = JSON.parse(localStorage.getItem(LocalStorageKeys.RigLogin)).login;
           this.state.rigProject.manifest = generateManifest('https://localhost.rig.twitch.tv:8080',
             ownerName, this.state.localName.trim(), this.getTypes());
         }

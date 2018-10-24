@@ -13,6 +13,7 @@ interface ExtensionComponentViewProps {
   frameSize: FrameSize;
   position: ExtensionCoordinator.Position;
   role: string;
+  isLocal: boolean;
   bindIframeToParent: (iframe: HTMLIFrameElement) => void;
 }
 
@@ -74,6 +75,7 @@ export class ExtensionComponentView extends React.Component<Props> {
             extension={this.props.extension}
             type={ExtensionViewType.Component}
             mode={ExtensionMode.Viewer}
+            isLocal={this.props.isLocal}
             isPopout={false}
           />
         </div>

@@ -139,8 +139,8 @@ interface UsersResponse {
   }[];
 }
 
-export async function fetchUser(token: string, login?: string) {
-  const path = `/helix/users${login ? `?login=${login}` : ''}`;
+export async function fetchUser(token: string, idOrLogin?: string, isId?: boolean) {
+  const path = `/helix/users${idOrLogin ? `?${isId ? 'id' : 'login'}=${idOrLogin}` : ''}`;
   const response = await onlineApi.get<UsersResponse>(path, {
     Authorization: `Bearer ${token}`,
   });
@@ -148,7 +148,7 @@ export async function fetchUser(token: string, login?: string) {
   if (data && data.length) {
     return data[0];
   }
-  if (login) {
+  if (idOrLogin) {
     // Did not find that user.
     return null;
   }
@@ -258,7 +258,7 @@ export async function fetchChannelConfigurationSegments(clientId: string, userId
 }
 
 export async function saveConfigurationSegment(clientId: string, userId: string, secret: string, segment: string, channelId: string, content: string, version: string) {
-  const path = `/extensions/${clientId}/configurations/`;
+  const path = `/extensions/${clientId}/configurations`;
   const headers = {
     Authorization: `Bearer ${createConfigurationToken(secret, userId)}`,
     'Client-ID': clientId,

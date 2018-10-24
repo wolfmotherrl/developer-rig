@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as closeButton from '../img/close_icon.png';
 import './component.sass';
 import { RadioOption } from '../extension-view-dialog/radio-option';
-import { DefaultMobileOrientation } from '../constants/mobile';
 import { MobileOrientation } from '../constants/mobile';
 import { RigExtensionView } from '../core/models/rig';
 import { ExtensionViewType } from '../constants/extension-coordinator';
@@ -14,10 +13,9 @@ export interface EditViewProps {
 }
 
 interface EditViewDialogProps {
-  idToEdit: string;
-  views: RigExtensionView[];
+  viewForEdit: RigExtensionView;
   closeHandler: () => void;
-  saveViewHandler: (newView: EditViewProps) => void;
+  saveViewHandler: (viewForEdit: RigExtensionView, newView: EditViewProps) => void;
 }
 
 interface State {
@@ -31,10 +29,10 @@ type Props = EditViewDialogProps;
 
 export class EditViewDialog extends React.Component<Props, State> {
   public state: State = {
-    x: 0,
-    y: 0,
-    orientation: DefaultMobileOrientation,
-    type: '',
+    x: this.props.viewForEdit.x,
+    y: this.props.viewForEdit.y,
+    orientation: this.props.viewForEdit.orientation,
+    type: this.props.viewForEdit.type,
   }
 
   private renderOrientationComponents() {
@@ -51,19 +49,6 @@ export class EditViewDialog extends React.Component<Props, State> {
   private onChange = (input: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       [input.currentTarget.name]: input.currentTarget.value,
-    });
-  }
-
-  public componentDidMount() {
-    this.props.views.forEach((element) => {
-      if (element.id === this.props.idToEdit) {
-        this.setState({
-          x: element.x,
-          y: element.y,
-          orientation: element.orientation,
-          type: element.type
-        });
-      }
     });
   }
 
@@ -116,7 +101,7 @@ export class EditViewDialog extends React.Component<Props, State> {
 
           <hr className="dialog__divider" />
           <div className="dialog_bottom-bar">
-            <div className="bottom-bar__save" onClick={() => this.props.saveViewHandler(this.state)}> Save </div>
+            <div className="bottom-bar__save" onClick={() => this.props.saveViewHandler(this.props.viewForEdit, this.state)}> Save </div>
             <div className="bottom-bar__cancel" onClick={this.props.closeHandler}> Cancel </div>
           </div>
         </div>

@@ -195,7 +195,7 @@ ShallowWrapper {
                     >
                               your Extension Capabilities page
                     </a>
-                    . Also you might need to refresh your Extension Manifest in the Rig (you can do so on the Project Tab).  Happy Coding!
+                    . Also you might need to refresh your Extension Manifest in the Rig.  You can do so on the Project Tab.  Happy Coding!
           </p>
           <button
                     className="configuration-service-view__button configuration-service-view__button--first"
@@ -598,7 +598,7 @@ ShallowWrapper {
               >
                             your Extension Capabilities page
               </a>
-              . Also you might need to refresh your Extension Manifest in the Rig (you can do so on the Project Tab).  Happy Coding!
+              . Also you might need to refresh your Extension Manifest in the Rig.  You can do so on the Project Tab.  Happy Coding!
 </p>,
             <button
               className="configuration-service-view__button configuration-service-view__button--first"
@@ -666,7 +666,7 @@ ShallowWrapper {
 >
                   your Extension Capabilities page
 </a>,
-                ". Also you might need to refresh your Extension Manifest in the Rig (you can do so on the Project Tab).  Happy Coding!",
+                ". Also you might need to refresh your Extension Manifest in the Rig.  You can do so on the Project Tab.  Happy Coding!",
               ],
               "className": "configuration-service-view__text",
             },
@@ -686,7 +686,7 @@ ShallowWrapper {
                 "rendered": "your Extension Capabilities page",
                 "type": "a",
               },
-              ". Also you might need to refresh your Extension Manifest in the Rig (you can do so on the Project Tab).  Happy Coding!",
+              ". Also you might need to refresh your Extension Manifest in the Rig.  You can do so on the Project Tab.  Happy Coding!",
             ],
             "type": "p",
           },
@@ -838,7 +838,7 @@ ShallowWrapper {
                         >
                                     your Extension Capabilities page
                         </a>
-                        . Also you might need to refresh your Extension Manifest in the Rig (you can do so on the Project Tab).  Happy Coding!
+                        . Also you might need to refresh your Extension Manifest in the Rig.  You can do so on the Project Tab.  Happy Coding!
             </p>
             <button
                         className="configuration-service-view__button configuration-service-view__button--first"
@@ -1241,7 +1241,7 @@ ShallowWrapper {
                 >
                                 your Extension Capabilities page
                 </a>
-                . Also you might need to refresh your Extension Manifest in the Rig (you can do so on the Project Tab).  Happy Coding!
+                . Also you might need to refresh your Extension Manifest in the Rig.  You can do so on the Project Tab.  Happy Coding!
 </p>,
               <button
                 className="configuration-service-view__button configuration-service-view__button--first"
@@ -1309,7 +1309,7 @@ ShallowWrapper {
 >
                     your Extension Capabilities page
 </a>,
-                  ". Also you might need to refresh your Extension Manifest in the Rig (you can do so on the Project Tab).  Happy Coding!",
+                  ". Also you might need to refresh your Extension Manifest in the Rig.  You can do so on the Project Tab.  Happy Coding!",
                 ],
                 "className": "configuration-service-view__text",
               },
@@ -1329,7 +1329,7 @@ ShallowWrapper {
                   "rendered": "your Extension Capabilities page",
                   "type": "a",
                 },
-                ". Also you might need to refresh your Extension Manifest in the Rig (you can do so on the Project Tab).  Happy Coding!",
+                ". Also you might need to refresh your Extension Manifest in the Rig.  You can do so on the Project Tab.  Happy Coding!",
               ],
               "type": "p",
             },

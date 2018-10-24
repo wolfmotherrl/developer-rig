@@ -12,6 +12,7 @@ export interface PublicProps {
   viewerHandler: Function,
   selectedView: NavItem,
   error: string,
+  deleteProject: () => void,
 }
 
 export interface ReduxStateProps {
@@ -69,6 +70,7 @@ export class RigNavComponent extends React.Component<Props> {
             />
             {manifest && <div className='personal-bar__ext-name'>
               <span>{manifest.name}</span>
+              <button className="personal-bar__button" onClick={this.props.deleteProject}>Delete</button>
             </div>}
             {session && session.login && <div className='top-nav-item__login'>
               <UserDropdown session={session} />

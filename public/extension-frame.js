@@ -10,9 +10,9 @@
       container.parameters.dobbin = { trackEvent: () => { } };
       container._ = new ExtensionFrame(container.parameters);
     },
-    'extension-frame-authorize': (event) => {
+    'developer-rig-authorize': (event) => {
       event.source.postMessage({
-        action: "extension-frame-authorize-response",
+        action: "developer-rig-authorized",
         response: {
           channelId: container.channelId,
           clientId: container.parameters.extension.clientId,
@@ -21,13 +21,14 @@
         },
       }, event.origin);
     },
-    'extension-frame-pubsub': (event) => {
+    'developer-rig-pubsub': (event) => {
       const { channelId, target, contentType, message } = event.data;
       const url = `${window.origin}/extensions/message/${channelId}`;
       fetch(url, {
         body: JSON.stringify({ targets: [target], content_type: contentType, message }),
         headers: {
           'Accept': 'application/json',
+          'Client-ID': container.parameters.extension.clientId,
           'Content-Type': 'application/json',
         },
         method: 'POST',
@@ -44,11 +45,13 @@
   };
 
   window.addEventListener('message', (event) => {
-    const fn = actions[event.data.action];
-    if (fn) {
-      fn(event);
-    } else if (loggingUnknownActions) {
-      console.error(`Unexpected extension frame event action "${event.data.action}"`);
+    if (event.data && event.data.action) {
+      const fn = actions[event.data.action];
+      if (fn) {
+        fn(event);
+      } else if (loggingUnknownActions) {
+        console.error(`Unexpected extension frame event action "${event.data.action}"`);
+      }
     }
   });
 }());

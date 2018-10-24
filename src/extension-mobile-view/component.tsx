@@ -17,6 +17,7 @@ interface ExtensionMobileViewProps {
   orientation: string;
   position: ExtensionCoordinator.Position
   role: string;
+  isLocal: boolean;
   bindIframeToParent: (iframe: HTMLIFrameElement) => void;
 }
 type Props = ExtensionMobileViewProps & React.HTMLAttributes<HTMLDivElement>;
@@ -78,6 +79,7 @@ export class ExtensionMobileView extends React.Component<Props> {
             frameId={`frameid-${this.props.id}`}
             mode={ExtensionMode.Viewer}
             type={ExtensionViewType.Mobile}
+            isLocal={this.props.isLocal}
             isPopout={false}
           />
         </div>

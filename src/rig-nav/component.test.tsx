@@ -20,7 +20,8 @@ const defaultGenerator = () => ({
   currentProjectIndex: 0,
   projects: [] as RigProject[],
   createNewProject: () => {},
-  selectProject: (projectIndex: number) => {},
+  deleteProject: jest.fn(),
+  selectProject: (_projectIndex: number) => {},
 });
 
 
@@ -38,6 +39,12 @@ describe('<RigNavComponent />', () => {
     });
 
     expect(wrapper.find('.top-nav-error').text().trim()).toBe('test error');
+  });
+
+  it('invokes deleteProject', () => {
+    const { wrapper } = setupShallow();
+    wrapper.find('.personal-bar__button').first().simulate('click');
+    expect(wrapper.instance().props.deleteProject).toHaveBeenCalled();
   });
 
   it('correctly handles clicks on each tab', () => {

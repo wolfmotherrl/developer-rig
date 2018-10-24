@@ -11,6 +11,7 @@ const setupShallow = setupShallowTest(ExtensionComponentView, () => ({
   frameSize: { width: 800, height: 600 },
   position: { x: 10, y: 10 },
   role: ViewerTypes.Broadcaster,
+  isLocal: false,
   bindIframeToParent: jest.fn(),
   installationAbilities: {
     isChatEnabled: true,
@@ -18,13 +19,33 @@ const setupShallow = setupShallowTest(ExtensionComponentView, () => ({
 }));
 
 describe('<ExtensionComponentView />', () => {
-  it('renders correctly', () => {
+  it('renders local correctly', () => {
+    const { wrapper } = setupShallow({ isLocal: true });
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('renders online correctly', () => {
     const { wrapper } = setupShallow();
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('renders correctly when zoom is true', () => {
-    const ext: ExtensionCoordinator.ExtensionObject = {
+  it('renders local correctly when zoom is true', () => {
+    const { wrapper } = setupShallow({
+      extension: createExtensionObject(),
+      isLocal: true,
+    });
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('renders online correctly when zoom is true', () => {
+    const { wrapper } = setupShallow({
+      extension: createExtensionObject(),
+    });
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  function createExtensionObject(): ExtensionCoordinator.ExtensionObject {
+    return {
       ...createExtensionForTest(),
       views: {
         component: {
@@ -46,15 +67,9 @@ describe('<ExtensionComponentView />', () => {
         panel: {
           canLinkExternalContent: false,
           viewerUrl: 'test',
-          height: 300
-        }
+          height: 300,
+        },
       },
     };
-
-    const { wrapper } = setupShallow({
-      extension: ext,
-    });
-
-    expect(wrapper).toMatchSnapshot();
-  });
+  }
 });

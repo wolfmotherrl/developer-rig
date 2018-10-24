@@ -1,33 +1,23 @@
 import { setupShallowTest } from '../tests/enzyme-util/shallow';
 import { ExtensionView } from './component';
 import { ViewerTypes } from '../constants/viewer-types';
-import { createExtensionForTest } from '../tests/constants/extension';
-import { MobileOrientation } from '../constants/mobile';
-import { ExtensionAnchor, ExtensionMode, ExtensionViewType, ExtensionPlatform } from '../constants/extension-coordinator';
+import { createExtensionForTest, createViewsForTest } from '../tests/constants/extension';
+import { ExtensionAnchor, ExtensionMode, ExtensionPlatform, ExtensionViewType } from '../constants/extension-coordinator';
 
 const DeleteButtonSelector = '.view__close_button.visible';
+const views = createViewsForTest(1, ExtensionViewType.Component, ViewerTypes.LoggedOut, { x: 10, y: 10 });
 
 describe('<ExtensionView />', () => {
   const setupShallow = setupShallowTest(ExtensionView, () => ({
-    channelId: 'twitch',
+    view: views[0],
     configuration: {},
-    id: '0',
     extension: createExtensionForTest(),
-    type: ExtensionAnchor.Panel,
     role: ViewerTypes.Broadcaster,
-    mode: 'viewer',
-    linked: false,
     isLocal: true,
-    isPopout: false,
-    position: { x: 0, y: 0 },
-    frameSize: { width: 0, height: 0 },
     deleteViewHandler: jest.fn(),
     openEditViewHandler: jest.fn(),
     iframe: '',
     mockApiEnabled: false,
-    installationAbilities: {
-      isChatEnabled: true,
-    }
   }));
 
   it('when moused over displays the delete button', () => {
@@ -59,7 +49,7 @@ describe('<ExtensionView />', () => {
   describe('config mode views', () => {
     it('renders correctly when in config mode', () => {
       const { wrapper } = setupShallow({
-        type: ExtensionMode.Config
+        view: createViewsForTest(1, ExtensionMode.Config, ViewerTypes.LoggedOut, { x: 10, y: 10 })[0],
       });
       expect(wrapper).toMatchSnapshot();
     });
@@ -68,7 +58,7 @@ describe('<ExtensionView />', () => {
   describe('live config mode views', () => {
     it('renders correctly when in config mode', () => {
       const { wrapper } = setupShallow({
-        type: ExtensionMode.Dashboard
+        view: createViewsForTest(1, ExtensionMode.Dashboard, ViewerTypes.LoggedOut, { x: 10, y: 10 })[0],
       });
       expect(wrapper).toMatchSnapshot();
     });
@@ -94,7 +84,7 @@ describe('<ExtensionView />', () => {
       };
 
       const { wrapper } = setupShallow({
-        type: ExtensionMode.Dashboard,
+        view: createViewsForTest(1, ExtensionMode.Dashboard, ViewerTypes.LoggedOut, { x: 10, y: 10 })[0],
         extension: extensionWithPanelHeight
       });
 
@@ -105,8 +95,7 @@ describe('<ExtensionView />', () => {
   describe('mobile mode views', () => {
     it('renders correctly when in mobile mode', () => {
       const { wrapper } = setupShallow({
-        type: ExtensionPlatform.Mobile,
-        orientation: MobileOrientation.Portrait,
+        view: createViewsForTest(1, ExtensionPlatform.Mobile, ViewerTypes.LoggedOut, { x: 10, y: 10 })[0],
       });
       expect(wrapper).toMatchSnapshot();
     });
@@ -115,7 +104,7 @@ describe('<ExtensionView />', () => {
   describe('component mode views', () => {
     it('renders component view when in component mode', () => {
       const { wrapper } = setupShallow({
-        type: ExtensionAnchor.Component,
+        view: createViewsForTest(1, ExtensionAnchor.Component, ViewerTypes.LoggedOut, { x: 10, y: 10 })[0],
       });
       expect(wrapper).toMatchSnapshot();
       expect(wrapper.find('ExtensionComponentView').length).toBe(1);
@@ -123,7 +112,7 @@ describe('<ExtensionView />', () => {
 
     it('brings up the edit dialog when edit is clicked', () => {
       const { wrapper } = setupShallow({
-        type: ExtensionAnchor.Component,
+        view: createViewsForTest(1, ExtensionAnchor.Component, ViewerTypes.LoggedOut, { x: 10, y: 10 })[0],
       });
 
       wrapper.simulate('mouseEnter');
@@ -160,7 +149,8 @@ describe('<ExtensionView />', () => {
       };
 
       const { wrapper } = setupShallow({
-        extension: extensionWithPanelHeight
+        view: createViewsForTest(1, ExtensionViewType.Panel, ViewerTypes.LoggedOut, { x: 10, y: 10 })[0],
+        extension: extensionWithPanelHeight,
       });
 
       expect(wrapper).toMatchSnapshot();
@@ -169,20 +159,21 @@ describe('<ExtensionView />', () => {
     it('renders correctly when in panel mode as a Logged In and Unlinked Viewer', () => {
       const { wrapper } = setupShallow({
         role: ViewerTypes.LoggedIn,
-        linked: false,
       });
       expect(wrapper).toMatchSnapshot();
     });
 
     it('renders correctly when in panel mode as a Logged In and Linked Viewer', () => {
+      const view = createViewsForTest(1, ExtensionViewType.Component, ViewerTypes.LoggedIn, { x: 10, y: 10 })[0];
+      view.linked = true;
       const { wrapper } = setupShallow({
+        view,
         role: ViewerTypes.LoggedIn,
-        linked: true,
       });
       expect(wrapper).toMatchSnapshot();
     });
 
-    it('renders correctly when in panel mode as a Logged Out', () => {
+    it('renders correctly when in panel mode as a Logged Out viewer', () => {
       const { wrapper } = setupShallow({
         role: ViewerTypes.LoggedOut,
       });
@@ -192,47 +183,53 @@ describe('<ExtensionView />', () => {
 
   describe('overlay mode views', () => {
     it('renders correctly in overlay mode as a Broadcaster', () => {
+      const view = createViewsForTest(1, ExtensionAnchor.Overlay, ViewerTypes.LoggedOut, { x: 10, y: 10 })[0];
+      view.frameSize = {
+        height: 1,
+        width: 1
+      };
       const { wrapper } = setupShallow({
-        type: ExtensionAnchor.Overlay,
-        frameSize: {
-          height: 1,
-          width: 1
-        }
+        view,
       });
       expect(wrapper).toMatchSnapshot();
     });
 
     it('renders correctly when in overlay mode as a Logged In and Unlinked Viewer', () => {
+      const view = createViewsForTest(1, ExtensionAnchor.Overlay, ViewerTypes.LoggedIn, { x: 10, y: 10 })[0];
+      view.frameSize = {
+        height: 1,
+        width: 1
+      };
       const { wrapper } = setupShallow({
+        view,
         role: ViewerTypes.LoggedIn,
-        linked: false,
-        frameSize: {
-          height: 1,
-          width: 1
-        }
       });
       expect(wrapper).toMatchSnapshot();
     });
 
     it('renders correctly when in overlay mode as a Logged In and Linked Viewer', () => {
+      const view = createViewsForTest(1, ExtensionViewType.Component, ViewerTypes.LoggedIn, { x: 10, y: 10 })[0];
+      view.linked = true;
+      view.frameSize = {
+        height: 1,
+        width: 1
+      };
       const { wrapper } = setupShallow({
+        view,
         role: ViewerTypes.LoggedIn,
-        linked: true,
-        frameSize: {
-          height: 1,
-          width: 1
-        }
       });
       expect(wrapper).toMatchSnapshot();
     });
 
     it('renders correctly when in overlay mode as a Logged Out', () => {
+      const view = createViewsForTest(1, ExtensionViewType.Component, ViewerTypes.LoggedOut, { x: 10, y: 10 })[0];
+      view.frameSize = {
+        height: 1,
+        width: 1
+      };
       const { wrapper } = setupShallow({
+        view,
         role: ViewerTypes.LoggedOut,
-        frameSize: {
-          height: 1,
-          width: 1
-        }
       });
       expect(wrapper).toMatchSnapshot();
     });
