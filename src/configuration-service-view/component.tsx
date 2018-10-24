@@ -52,7 +52,7 @@ export class ConfigurationServiceView extends React.Component<Props, State>{
     const { name, value } = input.currentTarget;
     this.setState({ [name]: value, lastConfiguration: '', lastVersion: '' });
     if (value === ConfigurationType.Global) {
-      const { content, version } = this.props.configurations.globalSegment;
+      const { content = '', version = '' } = this.props.configurations.globalSegment || {};
       this.setState({ configuration: content, version });
     } else {
       this.setState({ configuration: '', version: '' });
@@ -123,9 +123,6 @@ export class ConfigurationServiceView extends React.Component<Props, State>{
   public render() {
     const versionClassName = classNames('configuration-service-view-property__input', {
       'configuration-service-view-property__input--error': !this.state.version.trim(),
-    });
-    const channelClassName = classNames('configuration-service-view-property__input', {
-      'configuration-service-view-property__input--error': !this.state.channelId.trim(),
     });
     const configurationClassName = classNames('configuration-service-view-property__input', {
       'configuration-service-view-property__input--error': !this.state.configuration.trim(),

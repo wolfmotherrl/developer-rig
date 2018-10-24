@@ -230,7 +230,7 @@ export async function fetchGlobalConfigurationSegment(clientId: string, userId: 
   };
   const segmentMap = await onlineApi.get<SegmentRecordMap>(path, headers);
   const global = segmentMap['global:'];
-  return global ? global.record : { content: '', version: '' };
+  return global ? global.record : null;
 }
 
 export interface SegmentMap {

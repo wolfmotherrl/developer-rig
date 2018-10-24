@@ -11,7 +11,7 @@ import { ExtensionManifest } from '../core/models/manifest';
 import { createExtensionObject } from '../util/extension';
 
 interface Props {
-  configurations?: Configurations;
+  configurations: Configurations;
   isDisplayed: boolean;
   extensionViews: RigExtensionView[];
   isLocal: boolean;
@@ -46,19 +46,17 @@ export class ExtensionViewContainer extends React.Component<Props, State> {
 
   private constructConfiguration(channelId: string): ExtensionCoordinator.Configuration {
     const configuration: ExtensionCoordinator.Configuration = {};
-    if (this.props.configurations) {
-      const { configurations: { globalSegment, channelSegments } } = this.props;
-      if (globalSegment) {
-        configuration.global = globalSegment;
+    const { configurations: { globalSegment, channelSegments } } = this.props;
+    if (globalSegment) {
+      configuration.global = globalSegment;
+    }
+    const segments = channelSegments[channelId];
+    if (segments) {
+      if (segments.broadcaster) {
+        configuration.broadcaster = segments.broadcaster;
       }
-      const segments = channelSegments[channelId];
-      if (segments) {
-        if (segments.broadcaster) {
-          configuration.broadcaster = segments.broadcaster;
-        }
-        if (segments.developer) {
-          configuration.developer = segments.developer;
-        }
+      if (segments.developer) {
+        configuration.developer = segments.developer;
       }
     }
     return configuration;

@@ -183,7 +183,8 @@ export class RigComponent extends React.Component<Props, State> {
     const selectedProject = this.state.projects[projectIndex];
     if (selectedProject !== this.state.currentProject) {
       await stopHosting();
-      this.setState({ currentProject: selectedProject, selectedView: NavItem.ProjectOverview });
+      this.setState({ configurations: null, currentProject: selectedProject, selectedView: NavItem.ProjectOverview });
+      await this.updateConfiguration(selectedProject.manifest, selectedProject.extensionViews, this.state.userId, selectedProject.secret);
       this.refreshViews();
       localStorage.setItem(LocalStorageKeys.CurrentProjectIndex, this.currentProjectIndex.toString());
     }
@@ -248,7 +249,7 @@ export class RigComponent extends React.Component<Props, State> {
               userId={this.state.userId}
               saveHandler={this.saveConfiguration}
             />}
-            {currentProject && <ExtensionViewContainer
+            {configurations && currentProject && <ExtensionViewContainer
               key={`ExtensionViewContainer${this.state.extensionsViewContainerKey}`}
               configurations={configurations}
               isDisplayed={this.state.selectedView === NavItem.ExtensionViews}
@@ -360,6 +361,8 @@ export class RigComponent extends React.Component<Props, State> {
       } catch (ex) {
         console.error(`Cannot load configuration for client ID "${clientId}": ${ex.message}`);
       }
+    } else {
+      this.setState({ configurations: { globalSegment: null, channelSegments: {} } });
     }
   }
 

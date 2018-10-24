@@ -298,7 +298,12 @@ ShallowWrapper {
 />,
         <Unknown>
           <ExtensionViewContainer
-                    configurations={undefined}
+                    configurations={
+                              Object {
+                                        "channelSegments": Object {},
+                                        "globalSegment": null,
+                                      }
+                    }
                     deleteExtensionViewHandler={[Function]}
                     extensionViews={
                               Array [
@@ -384,9 +389,14 @@ ShallowWrapper {
           "children": Array [
             false,
             false,
-            undefined,
+            false,
             <ExtensionViewContainer
-              configurations={undefined}
+              configurations={
+                            Object {
+                                          "channelSegments": Object {},
+                                          "globalSegment": null,
+                                        }
+              }
               deleteExtensionViewHandler={[Function]}
               extensionViews={
                             Array [
@@ -425,13 +435,16 @@ ShallowWrapper {
         "rendered": Array [
           false,
           false,
-          undefined,
+          false,
           Object {
             "instance": null,
             "key": "ExtensionViewContainer0",
             "nodeType": "class",
             "props": Object {
-              "configurations": undefined,
+              "configurations": Object {
+                "channelSegments": Object {},
+                "globalSegment": null,
+              },
               "deleteExtensionViewHandler": [Function],
               "extensionViews": Array [
                 Object {
@@ -517,7 +530,12 @@ ShallowWrapper {
 />,
           <Unknown>
             <ExtensionViewContainer
-                        configurations={undefined}
+                        configurations={
+                                    Object {
+                                                "channelSegments": Object {},
+                                                "globalSegment": null,
+                                              }
+                        }
                         deleteExtensionViewHandler={[Function]}
                         extensionViews={
                                     Array [
@@ -603,9 +621,14 @@ ShallowWrapper {
             "children": Array [
               false,
               false,
-              undefined,
+              false,
               <ExtensionViewContainer
-                configurations={undefined}
+                configurations={
+                                Object {
+                                                "channelSegments": Object {},
+                                                "globalSegment": null,
+                                              }
+                }
                 deleteExtensionViewHandler={[Function]}
                 extensionViews={
                                 Array [
@@ -644,13 +667,16 @@ ShallowWrapper {
           "rendered": Array [
             false,
             false,
-            undefined,
+            false,
             Object {
               "instance": null,
               "key": "ExtensionViewContainer0",
               "nodeType": "class",
               "props": Object {
-                "configurations": undefined,
+                "configurations": Object {
+                  "channelSegments": Object {},
+                  "globalSegment": null,
+                },
                 "deleteExtensionViewHandler": [Function],
                 "extensionViews": Array [
                   Object {

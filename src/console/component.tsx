@@ -25,8 +25,10 @@ export class Console extends React.Component<{}, State> {
   private updateConsole() {
     setTimeout(() => {
       const console = this.console.current;
-      const { offsetHeight, scrollHeight } = console;
-      console.scrollTop = Math.max(0, scrollHeight - offsetHeight);
+      if (console) {
+        const { offsetHeight, scrollHeight } = console;
+        console.scrollTop = Math.max(0, scrollHeight - offsetHeight);
+      }
     });
     this.setState({
       logHistory: window.rig.history
